@@ -8,7 +8,6 @@ import hashlib
 import io
 import os
 import re
-import json
 from lxml import html
 from urllib.parse import urlparse, unquote
 from enum import Enum
@@ -35,7 +34,7 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_discord_channels()
 
         asyncio.ensure_future(self.monitor_bats())
-    
+
     # setup functions
 
     def setup_bats_parser(self):
@@ -47,18 +46,15 @@ class ARG(commands.Cog, name="ARG"):
 
     def setup_monitoring(self):
         self.bats_url = "https://sunaiku-foundation.com/en/hiddenbats/"
-        self.rss_feed = "https://sunaiku-foundation.com/en/feed/"
         self.filename = "hiddenbats"
         self.nonce = None
 
     def setup_discord_channels(self):
-        self.admins = []
-        self.monitor_channels = [917404938169094164, 972987247269912586]
-        self.command_channels = [917404938169094164, 859956017148329984, 558148909692616705, 859233122104508456, 353677838760542208,
-                                 859960099812671508, 626740639278694400, 972987247269912586, 624387832970215434, 382588676825153537, 607481147013857310, 685287787460689953]
-        self.admins += json.loads(os.getenv('DISCORD_ADMINS', '[]'))
-        self.monitor_channels += json.loads(os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
-        self.command_channels += json.loads(os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
+        self.admins = orjson.loads(os.getenv('DISCORD_ADMINS', '[]'))
+        self.monitor_channels = orjson.loads(
+            os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
+        self.command_channels = orjson.loads(
+            os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
 
     # helper functions
 
