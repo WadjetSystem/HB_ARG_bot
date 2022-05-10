@@ -109,6 +109,14 @@ class ARG(commands.Cog, name="ARG"):
         print('Starting bats monitoring.')
         channels = [self.bot.get_channel(channel)
                     for channel in self.monitor_channels]
+        # check if bot can actually access all monitor channels
+        if None in channels:
+            print('Failed to get info for a channel, retrying.')
+            await asyncio.sleep(10)  # wait 10 seconds before trying again
+            channels = [self.bot.get_channel(channel)
+                        for channel in self.monitor_channels]
+            if None in channels:
+                print('Failed to get info for a channel.')
         async with aiohttp.ClientSession() as session:
             while True:
                 try:
@@ -124,15 +132,17 @@ class ARG(commands.Cog, name="ARG"):
                             current_file = disnake.File(self.response_to_byte_array(
                                 response), filename=f'{self.filename}_new.html')
                             self.nonce = self.get_nonce(response)
-                            # notify
+                            # notify about changes
                             if prev_nonce != self.nonce:
                                 for channel in channels:
-                                    await channel.send(f'Something changed in hiddenbats site.\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
-                                    await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
+                                    async with channel.typing():
+                                        await channel.send(f'Something changed in hiddenbats site.\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
                             else:
                                 for channel in channels:
-                                    await channel.send(f'Something changed in hiddenbats site.\nPrevious HTML:', file=prev_file)
-                                    await channel.send(f'New HTML:', file=current_file)
+                                    async with channel.typing():
+                                        await channel.send(f'Something changed in hiddenbats site.\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'New HTML:', file=current_file)
                         else:
                             self.nonce = self.get_nonce(response)
                         prevHash = currentHash

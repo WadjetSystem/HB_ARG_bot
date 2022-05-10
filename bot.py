@@ -2,9 +2,9 @@ import disnake
 from disnake.ext import commands
 import os
 
-# if you want to run without heroku. could probably improve this check by checking an env only in heroku or something
-local_testing = False
-if local_testing:
+# checks if it's running in heroku
+if not os.getenv("HEROKU"):
+    print('Starting in local mode.')
     from dotenv import load_dotenv
     load_dotenv()
 intents = disnake.Intents().default()
