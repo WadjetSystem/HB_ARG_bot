@@ -8,6 +8,7 @@ import hashlib
 import io
 import os
 import re
+import json
 from lxml import html
 from urllib.parse import urlparse, unquote
 from enum import Enum
@@ -28,19 +29,37 @@ class ARG(commands.Cog, name="ARG"):
 
     def __init__(self, bot: commands.Bot):
         self.bot = bot
+
+        self.setup_bats_parser()
+        self.setup_monitoring()
+        self.setup_discord_channels()
+
+        asyncio.ensure_future(self.monitor_bats())
+    
+    # setup functions
+
+    def setup_bats_parser(self):
         # maybe we could try getting the key automatically from the document, or read it from a file
         self.decryptkey = {
             "yellowsnake": "I", "orangeturtle": "23", "whitedog": "6", "yellowmouse": "15", "redcat": "↗", "reddog": "51", "whiteelephant": ".-", "orangesnake": "J", "orangegiraffe": "H", "🙁": "T", "sadface": "T", "yellowelephant": "2", "bluepenguin": "U", "bluegiraffe": "F", "redmouse": "S", "bluerabbit": "H", "yellowcat": "O", "bluedog": "E", "redrabbit": "S", "blackdog": "E", "yellowrabbit": "R", "greenfrog": "←", "greenowl": "E", "👁️": "U", "eye": "U", "yellowbat": "P", "whiteturtle": "A", "bluecat": "I", "blackpenguin": "R", "whiteowl": "C", "blackturtle": "3", "redpenguin": "S", "bluesnake": "P", "redelephant": "K", "greengiraffe": "L", "blackrabbit": "M", "greenbat": "21", "upsidedownface": "L", "whitecat": "T", "whitebat": "L", "orangedog": "E", "greenelephant": "T", "yellowpenguin": "A", "orangefrog": "F", "blackcat": "M", "yellowdog": "...", "whitegiraffe": "N", "redfrog": "4", "whitepenguin": "♡", "yellowturtle": "Y", "yellowowl": "53", "💀": "A", "skull": "A", "orangeowl": "T", "redgiraffe": "111", "bluemouse": "-.-.", "greensnake": "↖", "blackfrog": "ZYXWVUTSRQPONMLKJIHGFEDCBA", "redowl": "→", "greenturtle": "R", "orangecat": "A", "🙂": "M", "happyface": "M", "orangeelephant": "N", "blacksnake": ".--.", "blueturtle": "♅", "orangebat": "1", "whitefrog": "41", "greenmouse": "C", "blackgiraffe": "5", "blackmouse": "↘", "greenrabbit": "4", "blueelephant": "A"
         }
         self.encryptkey = {y: x for x, y in self.decryptkey.items()}
+
+    def setup_monitoring(self):
         self.bats_url = "https://sunaiku-foundation.com/en/hiddenbats/"
         self.rss_feed = "https://sunaiku-foundation.com/en/feed/"
         self.filename = "hiddenbats"
         self.nonce = None
+
+    def setup_discord_channels(self):
+        self.admins = []
         self.monitor_channels = [917404938169094164, 972987247269912586]
         self.command_channels = [917404938169094164, 859956017148329984, 558148909692616705, 859233122104508456, 353677838760542208,
                                  859960099812671508, 626740639278694400, 972987247269912586, 624387832970215434, 382588676825153537, 607481147013857310, 685287787460689953]
-        asyncio.ensure_future(self.monitor_bats())
+        self.admins += json.loads(os.getenv('DISCORD_ADMINS', '[]'))
+        self.monitor_channels += json.loads(os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
+        self.command_channels += json.loads(os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
+
     # helper functions
 
     class Language(str, Enum):
