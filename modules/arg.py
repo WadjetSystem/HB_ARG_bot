@@ -136,12 +136,12 @@ class ARG(commands.Cog, name="ARG"):
                             if prev_nonce != self.nonce:
                                 for channel in channels:
                                     async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site.\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'Something changed in hiddenbats site <:MizukiThumbsUp:925566710243803156>.\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
                             else:
                                 for channel in channels:
                                     async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site.\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'Something changed in hiddenbats site <:MizukiThumbsUp:925566710243803156>.\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New HTML:', file=current_file)
                         else:
                             self.nonce = self.get_nonce(response)
@@ -191,6 +191,13 @@ class ARG(commands.Cog, name="ARG"):
     )
     async def decrypt(self, interaction=Interaction, *, string):
         await interaction.response.send_message(self.bats_decrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        return
+
+    @commands.slash_command(
+        name="thumbsup", description="you have 21 minutes to get help"
+    )
+    async def thumbsup(self, interaction=Interaction):
+        await interaction.response.send_message("<:MizukiThumbsUp:925566710243803156>", ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
 
     # TODO - handle strings longer than 2000 characters, maybe upload as a file?
