@@ -114,6 +114,27 @@ class ARG(commands.Cog, name="ARG"):
             print('No nonce found.')
             return None
 
+    # events
+
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        
+        if message.author == self.bot.user:
+            return
+
+        # make these better later
+        if isinstance(message.channel, disnake.TextChannel):
+            
+            if message.author.nick == "Aine Ichirai/壱来アイネ":
+                if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
+                    await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                    return
+
+            if message.author.nick == "Binato Sotobara/卒斗原ビナト":
+                if message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
+                    await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                    return
+
     # monitors hiddenbats site for any changes
 
     async def monitor_bats(self):
