@@ -8,6 +8,7 @@ import hashlib
 import io
 import os
 import re
+import datetime
 from lxml import html
 from urllib.parse import urlparse, unquote
 from enum import Enum
@@ -32,6 +33,7 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_bats_parser()
         self.setup_monitoring()
         self.setup_discord_channels()
+        self.setup_pair_info()
 
         asyncio.ensure_future(self.monitor_bats())
 
@@ -55,6 +57,14 @@ class ARG(commands.Cog, name="ARG"):
             os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
         self.command_channels = orjson.loads(
             os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
+    
+    def setup_pair_info(self):
+        self.pair_names = orjson.loads(
+            os.getenv('PAIR_INFO', '[]')
+        )
+        self.first_tweet_date = orjson.loads(
+            os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
+        )
 
     # helper functions
 
@@ -268,6 +278,28 @@ class ARG(commands.Cog, name="ARG"):
         else:
             await interaction.followup.send(f"Failed. Unknown response code: {resp.status}. Please contact the bot's creator kthx.")
         return
+
+    @commands.slash_command(
+        name="time", description="Posts how much time is left until the next tweet."
+    )
+    async def time(self, interaction=Interaction):
+        todays_date = datetime.datetime.now(datetime.timezone.utc)
+        todays_tweet_post_date = todays_date.replace(hour=2, minute=00)
+        tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
+        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2],tzinfo=datetime.timezone.utc) 
+
+        if todays_date.time() < datetime.time(2,00):
+            unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
+        else:
+            unix_timestamp = datetime.datetime.timestamp(tomorrows_tweet_post_date)
+
+        if (todays_date - first_tweet_date).days % 2 == 0:
+            if(todays_date.time() < datetime.time(2,00)):
+                tweet_sender = self.pair_names[0]
+            else: tweet_sender = self.pair_names[1]
+        else: tweet_sender = self.pair_names[0]
+        await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10],tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+
 
 
 def setup(bot: commands.Bot):
