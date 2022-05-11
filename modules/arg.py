@@ -52,12 +52,11 @@ class ARG(commands.Cog, name="ARG"):
         self.nonce = None
 
     def setup_discord_channels(self):
-        self.admins = orjson.loads(os.getenv('DISCORD_ADMINS', '[]'))
         self.monitor_channels = orjson.loads(
             os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
         self.command_channels = orjson.loads(
             os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
-    
+
     def setup_pair_info(self):
         self.pair_names = orjson.loads(
             os.getenv('PAIR_INFO', '[]')
@@ -161,6 +160,7 @@ class ARG(commands.Cog, name="ARG"):
                         for channel in self.monitor_channels]
             if None in channels:
                 print('Failed to get info for a channel.')
+                channels = list(filter(None, channels))
         async with aiohttp.ClientSession() as session:
             while True:
                 try:
@@ -171,20 +171,29 @@ class ARG(commands.Cog, name="ARG"):
                     if prevHash != currentHash:
                         if len(prevHash) != 0:
                             prev_nonce = self.nonce
-                            prev_file = disnake.File(self.response_to_byte_array(
-                                prevResponse), filename=f'{self.filename}_old.html')
-                            current_file = disnake.File(self.response_to_byte_array(
-                                response), filename=f'{self.filename}_new.html')
                             self.nonce = self.get_nonce(response)
+                            prev_bytearray = self.response_to_byte_array(
+                                prevResponse)
+                            current_bytearray = self.response_to_byte_array(
+                                response)
                             # notify about changes
+                            # TODO - clean this up, maybe put it into a separate function
                             if prev_nonce != self.nonce:
                                 for channel in channels:
                                     async with channel.typing():
+                                        prev_file = disnake.File(
+                                            prev_bytearray, filename=f'{self.filename}_old.html')
+                                        current_file = disnake.File(
+                                            current_bytearray, filename=f'{self.filename}_new.html')
                                         await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
                             else:
                                 for channel in channels:
                                     async with channel.typing():
+                                        prev_file = disnake.File(
+                                            prev_bytearray, filename=f'{self.filename}_old.html')
+                                        current_file = disnake.File(
+                                            current_bytearray, filename=f'{self.filename}_new.html')
                                         await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New HTML:', file=current_file)
                         else:
@@ -285,21 +294,26 @@ class ARG(commands.Cog, name="ARG"):
     async def time(self, interaction=Interaction):
         todays_date = datetime.datetime.now(datetime.timezone.utc)
         todays_tweet_post_date = todays_date.replace(hour=2, minute=00)
-        tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
-        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2],tzinfo=datetime.timezone.utc) 
+        tomorrows_tweet_post_date = todays_tweet_post_date + \
+            datetime.timedelta(days=1)
+        first_tweet_date = datetime.datetime(
+            self.first_tweet_date[0], self.first_tweet_date[1], self.first_tweet_date[2], tzinfo=datetime.timezone.utc)
 
-        if todays_date.time() < datetime.time(2,00):
-            unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
+        if todays_date.time() < datetime.time(2, 00):
+            unix_timestamp = datetime.datetime.timestamp(
+                todays_tweet_post_date)
         else:
-            unix_timestamp = datetime.datetime.timestamp(tomorrows_tweet_post_date)
+            unix_timestamp = datetime.datetime.timestamp(
+                tomorrows_tweet_post_date)
 
         if (todays_date - first_tweet_date).days % 2 == 0:
-            if(todays_date.time() < datetime.time(2,00)):
+            if(todays_date.time() < datetime.time(2, 00)):
                 tweet_sender = self.pair_names[0]
-            else: tweet_sender = self.pair_names[1]
-        else: tweet_sender = self.pair_names[0]
-        await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10],tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
-
+            else:
+                tweet_sender = self.pair_names[1]
+        else:
+            tweet_sender = self.pair_names[0]
+        await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10], tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
 
 
 def setup(bot: commands.Bot):
