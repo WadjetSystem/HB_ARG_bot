@@ -8,6 +8,7 @@ import hashlib
 import io
 import os
 import re
+import datetime
 from lxml import html
 from urllib.parse import urlparse, unquote
 from enum import Enum
@@ -269,6 +270,28 @@ class ARG(commands.Cog, name="ARG"):
         else:
             await interaction.followup.send(f"Failed. Unknown response code: {resp.status}. Please contact the bot's creator kthx.")
         return
+
+    @commands.slash_command(
+        name="time", description="Posts how much time is left until the next tweet."
+    )
+    async def time(self, interaction=Interaction):
+        todays_date = datetime.datetime.now()
+        todays_tweet_post_date = todays_date.replace(hour=23, minute=00)
+        tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
+        first_tweet_date = datetime.datetime(2022,5,7)
+
+        if todays_date.time() < datetime.time(23,00):
+            unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
+        else:
+            unix_timestamp = datetime.datetime.timestamp(tomorrows_tweet_post_date)
+
+        if (todays_date - first_tweet_date).days % 2 == 0:
+            if(todays_date.time() < datetime.time(23,00)):
+                tweet_sender = "Aine"
+            else: tweet_sender = "Binato"
+        else: tweet_sender = "Binato"
+        await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10],tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+
 
 
 def setup(bot: commands.Bot):
