@@ -33,6 +33,7 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_bats_parser()
         self.setup_monitoring()
         self.setup_discord_channels()
+        self.setup_pair_info()
 
         asyncio.ensure_future(self.monitor_bats())
 
@@ -56,6 +57,14 @@ class ARG(commands.Cog, name="ARG"):
             os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
         self.command_channels = orjson.loads(
             os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
+    
+    def setup_pair_info(self):
+        self.pair_names = orjson.loads(
+            os.getenv('PAIR_INFO', '[]')
+        )
+        self.first_tweet_date = orjson.loads(
+            os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
+        )
 
     # helper functions
 
@@ -278,7 +287,7 @@ class ARG(commands.Cog, name="ARG"):
         todays_date = datetime.datetime.now()
         todays_tweet_post_date = todays_date.replace(hour=23, minute=00)
         tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
-        first_tweet_date = datetime.datetime(2022,5,7)
+        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2])
 
         if todays_date.time() < datetime.time(23,00):
             unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
@@ -287,9 +296,9 @@ class ARG(commands.Cog, name="ARG"):
 
         if (todays_date - first_tweet_date).days % 2 == 0:
             if(todays_date.time() < datetime.time(23,00)):
-                tweet_sender = "Aine"
-            else: tweet_sender = "Binato"
-        else: tweet_sender = "Binato"
+                tweet_sender = self.pair_names[0]
+            else: tweet_sender = self.pair_names[1]
+        else: tweet_sender = self.pair_names[1]
         await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10],tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
 
 
