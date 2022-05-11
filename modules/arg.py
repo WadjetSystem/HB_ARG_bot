@@ -122,16 +122,14 @@ class ARG(commands.Cog, name="ARG"):
         if message.author == self.bot.user:
             return
 
-        # make these better later
         if isinstance(message.channel, disnake.TextChannel):
-            if message.channel in self.command_channels:
-                if message.author.nick == "Aine Ichirai/壱来アイネ":
+            if not self.is_not_in_whitelist(message.channel.id):
+                # this will work fine until they start retweeting each other's tweets
+                if message.author.nick in ["Aine Ichirai/壱来アイネ", "Binato Sotobara/卒斗原ビナト"]:
                     if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
                         await message.reply('<:MizukiThumbsUp:925566710243803156>')
                         return
-
-                if message.author.nick == "Binato Sotobara/卒斗原ビナト":
-                    if message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
+                    elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
                         await message.reply('<:MizukiThumbsUp:925566710243803156>')
                         return
 
@@ -200,7 +198,7 @@ class ARG(commands.Cog, name="ARG"):
     )
     async def password(self, interaction=Interaction, *, password: str, language: Language = 'en'):
         if self.nonce == None:
-            await interaction.response.send_message("Nonce is missing. Please wait a bit or contact the bot's creator if this persists.")
+            await interaction.response.send_message("Nonce is missing. Please wait a bit or contact the bot's creator if this persists.", ephemeral=self.is_not_in_whitelist(interaction.channel_id))
             return
         form_data = aiohttp.FormData()
         form_data.add_field("action", "hiddenbats_password_check")
