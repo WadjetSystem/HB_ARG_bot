@@ -284,10 +284,10 @@ class ARG(commands.Cog, name="ARG"):
         name="time", description="Posts how much time is left until the next tweet."
     )
     async def time(self, interaction=Interaction):
-        todays_date = datetime.datetime.now()
-        todays_tweet_post_date = todays_date.replace(hour=23, minute=00)
+        todays_date = datetime.datetime.now(datetime.timezone.utc)
+        todays_tweet_post_date = todays_date.replace(hour=2, minute=00)
         tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
-        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2])
+        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2]) 
 
         if todays_date.time() < datetime.time(23,00):
             unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
@@ -295,7 +295,7 @@ class ARG(commands.Cog, name="ARG"):
             unix_timestamp = datetime.datetime.timestamp(tomorrows_tweet_post_date)
 
         if (todays_date - first_tweet_date).days % 2 == 0:
-            if(todays_date.time() < datetime.time(23,00)):
+            if(todays_date.time() < datetime.time(2,00)):
                 tweet_sender = self.pair_names[0]
             else: tweet_sender = self.pair_names[1]
         else: tweet_sender = self.pair_names[1]
