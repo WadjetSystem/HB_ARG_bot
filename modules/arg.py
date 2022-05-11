@@ -118,22 +118,22 @@ class ARG(commands.Cog, name="ARG"):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        
+
         if message.author == self.bot.user:
             return
 
         # make these better later
         if isinstance(message.channel, disnake.TextChannel):
-            
-            if message.author.nick == "Aine Ichirai/壱来アイネ":
-                if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
-                    await message.reply('<:MizukiThumbsUp:925566710243803156>')
-                    return
+            if message.channel in self.command_channels:
+                if message.author.nick == "Aine Ichirai/壱来アイネ":
+                    if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
+                        await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                        return
 
-            if message.author.nick == "Binato Sotobara/卒斗原ビナト":
-                if message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
-                    await message.reply('<:MizukiThumbsUp:925566710243803156>')
-                    return
+                if message.author.nick == "Binato Sotobara/卒斗原ビナト":
+                    if message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
+                        await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                        return
 
     # monitors hiddenbats site for any changes
 
@@ -172,12 +172,12 @@ class ARG(commands.Cog, name="ARG"):
                             if prev_nonce != self.nonce:
                                 for channel in channels:
                                     async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site <:MizukiThumbsUp:925566710243803156>.\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
                             else:
                                 for channel in channels:
                                     async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site <:MizukiThumbsUp:925566710243803156>.\nPrevious HTML:', file=prev_file)
+                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious HTML:', file=prev_file)
                                         await channel.send(f'New HTML:', file=current_file)
                         else:
                             self.nonce = self.get_nonce(response)
@@ -194,8 +194,9 @@ class ARG(commands.Cog, name="ARG"):
 
     # slash commands
 
+    # TODO - maybe use a method that lets us describe the variable itself
     @commands.slash_command(
-        name="password", description="Tries the password on the hiddenbats site."
+        name="password", description='Tries the password on the hiddenbats site, e.g. "PAN".'
     )
     async def password(self, interaction=Interaction, *, password: str, language: Language = 'en'):
         if self.nonce == None:
@@ -223,7 +224,7 @@ class ARG(commands.Cog, name="ARG"):
         return
 
     @commands.slash_command(
-        name="decrypt", description="Decrypts a bats489 encrypted string."
+        name="decrypt", description="Decrypts a bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
     )
     async def decrypt(self, interaction=Interaction, *, string):
         await interaction.response.send_message(self.bats_decrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
