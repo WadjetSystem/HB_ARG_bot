@@ -287,9 +287,9 @@ class ARG(commands.Cog, name="ARG"):
         todays_date = datetime.datetime.now(datetime.timezone.utc)
         todays_tweet_post_date = todays_date.replace(hour=2, minute=00)
         tomorrows_tweet_post_date = todays_tweet_post_date + datetime.timedelta(days=1)
-        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2]) 
+        first_tweet_date = datetime.datetime(self.first_tweet_date[0],self.first_tweet_date[1],self.first_tweet_date[2],tzinfo=datetime.timezone.utc) 
 
-        if todays_date.time() < datetime.time(23,00):
+        if todays_date.time() < datetime.time(2,00):
             unix_timestamp = datetime.datetime.timestamp(todays_tweet_post_date)
         else:
             unix_timestamp = datetime.datetime.timestamp(tomorrows_tweet_post_date)
@@ -298,7 +298,7 @@ class ARG(commands.Cog, name="ARG"):
             if(todays_date.time() < datetime.time(2,00)):
                 tweet_sender = self.pair_names[0]
             else: tweet_sender = self.pair_names[1]
-        else: tweet_sender = self.pair_names[1]
+        else: tweet_sender = self.pair_names[0]
         await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10],tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
 
 
