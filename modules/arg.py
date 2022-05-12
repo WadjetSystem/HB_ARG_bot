@@ -181,21 +181,17 @@ class ARG(commands.Cog, name="ARG"):
                             if prev_nonce != self.nonce:
                                 for channel in channels:
                                     async with channel.typing():
-                                        prev_file = disnake.File(
-                                            prev_bytearray, filename=f'{self.filename}_old.html')
-                                        current_file = disnake.File(
-                                            current_bytearray, filename=f'{self.filename}_new.html')
-                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=prev_file)
-                                        await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=current_file)
+                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=disnake.File(
+                                            prev_bytearray, filename=f'{self.filename}_old.html'))
+                                        await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=disnake.File(
+                                            current_bytearray, filename=f'{self.filename}_new.html'))
                             else:
                                 for channel in channels:
                                     async with channel.typing():
-                                        prev_file = disnake.File(
-                                            prev_bytearray, filename=f'{self.filename}_old.html')
-                                        current_file = disnake.File(
-                                            current_bytearray, filename=f'{self.filename}_new.html')
-                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious HTML:', file=prev_file)
-                                        await channel.send(f'New HTML:', file=current_file)
+                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious HTML:', file=disnake.File(
+                                            prev_bytearray, filename=f'{self.filename}_old.html'))
+                                        await channel.send(f'New HTML:', file=disnake.File(
+                                            current_bytearray, filename=f'{self.filename}_new.html'))
                         else:
                             self.nonce = self.get_nonce(response)
                         prevHash = currentHash
