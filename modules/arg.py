@@ -71,7 +71,22 @@ class ARG(commands.Cog, name="ARG"):
         English = 'en'
         Japanese = 'jp'
 
-    # functions for bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
+    # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
+
+    def bats_values(self, inputstring):
+        splitlist = inputstring.split(" ")
+        combilist = []
+        for i in range(len(splitlist)):
+            if splitlist[i].lower() in self.decryptkey:
+                combilist.append(self.decryptkey[splitlist[i].lower()])
+            else:
+                combilist.append(":x:")
+        bit = " | "
+        joinedlist = bit.join(combilist)
+        if len(joinedlist) == 0:
+            return "No valid characters found."
+        else:
+            return joinedlist
 
     def bats_decrypt(self, inputstring):
         splitlist = inputstring.split(" ")
@@ -237,7 +252,14 @@ class ARG(commands.Cog, name="ARG"):
         return
 
     @commands.slash_command(
-        name="decrypt", description="Decrypts a bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
+        name="values", description="Displays values for a Bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
+    )
+    async def values(self, interaction=Interaction, *, string):
+        await interaction.response.send_message(self.bats_values(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        return
+
+    @commands.slash_command(
+        name="decrypt", description="Fully decrypts a Bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
     )
     async def decrypt(self, interaction=Interaction, *, string):
         await interaction.response.send_message(self.bats_decrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
@@ -252,7 +274,7 @@ class ARG(commands.Cog, name="ARG"):
 
     # TODO - handle strings longer than 2000 characters, maybe upload as a file?
     @commands.slash_command(
-        name="encrypt", description="Encrypts a string with bats489."
+        name="encrypt", description="Encrypts a string with Bats489."
     )
     async def encrypt(self, interaction=Interaction, *, string):
         await interaction.response.send_message(self.bats_encrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
