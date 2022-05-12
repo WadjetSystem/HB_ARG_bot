@@ -76,17 +76,24 @@ class ARG(commands.Cog, name="ARG"):
     def bats_values(self, inputstring):
         splitlist = inputstring.split(" ")
         combilist = []
+        invalid = []
         for i in range(len(splitlist)):
             if splitlist[i].lower() in self.decryptkey:
                 combilist.append(self.decryptkey[splitlist[i].lower()])
             else:
                 combilist.append(":x:")
+                invalid.append(splitlist[i].lower())
         bit = " | "
         joinedlist = bit.join(combilist)
-        if len(joinedlist) == 0:
-            return "No valid characters found."
+
+        result = ""
+        if len(combilist) == len(invalid):
+            result += "No valid characters found."
         else:
-            return joinedlist
+            result += joinedlist
+            if len(invalid) > 0:
+                result += "\nInvalid characters: {}".format(", ".join(invalid))
+        return result
 
     def bats_decrypt(self, inputstring):
         splitlist = inputstring.split(" ")
