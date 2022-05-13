@@ -67,7 +67,20 @@ class ARG(commands.Cog, name="ARG"):
 
     # helper functions
 
+    # handle messages that may be longer than 2000 characters
+    async def hb_send_message(self, interaction, message=None, files=[]):
+        # if message is too long to be sent normally
+        if len(message) > 2000:
+            buffer = io.StringIO()
+            buffer.write(message)
+            buffer.seek(0)
+            await interaction.response.send_message("Message is too long, uploading it as a file instead.", file=disnake.File(buffer, "message.txt"), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        else:
+            await interaction.response.send_message(message, files=files, ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        return
+
     # sending hidden bats HTML
+
     async def send_html_message(self, channels, prev_bytearray, current_bytearray, prev_nonce):
         text_prev = "Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n"
         text_new = str()
@@ -252,40 +265,39 @@ class ARG(commands.Cog, name="ARG"):
                     data = await r.text()
                     text = orjson.loads(data)
                     if text["state"] == "correct":
-                        await interaction.response.send_message(clean_text(text["html"]), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+                        await self.hb_send_message(interaction, message=clean_text(text["html"]))
                     elif text["state"] == "failed":
-                        await interaction.response.send_message('Wrong password.', ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+                        await self.hb_send_message(interaction, message='Wrong password.')
                     else:
-                        await interaction.response.send_message(f'Unknown state {text["state"]}.', ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+                        await self.hb_send_message(interaction, message=f'Unknown state {text["state"]}.')
         return
 
     @commands.slash_command(
         name="values", description="Displays values for a Bats489 encrypted string."
     )
-    async def values(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
-        await interaction.response.send_message(self.bats_values(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+    async def values(self, interaction=Interaction, *, string: str = commands.Param(description="String to decrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
+        await self.hb_send_message(interaction, message=self.bats_values(string))
         return
 
     @commands.slash_command(
         name="decrypt", description="Fully decrypts a Bats489 encrypted string."
     )
-    async def decrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
-        await interaction.response.send_message(self.bats_decrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+    async def decrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to decrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
+        await self.hb_send_message(interaction, message=self.bats_decrypt(string))
+        return
+
+    @commands.slash_command(
+        name="encrypt", description="Encrypts a string with Bats489."
+    )
+    async def encrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. PAN.")):
+        await self.hb_send_message(interaction, message=self.bats_encrypt(string))
         return
 
     @commands.slash_command(
         name="thumbsup", description="you have 21 minutes to get help"
     )
     async def thumbsup(self, interaction=Interaction):
-        await interaction.response.send_message("<:MizukiThumbsUp:925566710243803156>", ephemeral=self.is_not_in_whitelist(interaction.channel_id))
-        return
-
-    # TODO - handle strings longer than 2000 characters, maybe upload as a file?
-    @commands.slash_command(
-        name="encrypt", description="Encrypts a string with Bats489."
-    )
-    async def encrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. PAN.")):
-        await interaction.response.send_message(self.bats_encrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        await self.hb_send_message(interaction, message="<:MizukiThumbsUp:925566710243803156>")
         return
 
     @commands.slash_command(
@@ -293,12 +305,12 @@ class ARG(commands.Cog, name="ARG"):
     )
     async def media(self, interaction=Interaction, *, url: str = commands.Param(description="a Sunaiku Foundation media URL")):
         if not url.startswith("https://sunaiku-foundation.com"):
-            await interaction.response.send_message("Not a valid Sunaiku Foundation URL.", ephemeral=True)
+            await self.hb_send_message(interaction, message="Not a valid Sunaiku Foundation URL.")
             return
         filename = os.path.basename(unquote(urlparse(url).path))
         _, extension = os.path.splitext(filename)
         if not extension in [".png", ".jpg", ".jpeg", ".webm", ".mp4"]:
-            await interaction.response.send_message("Not a valid picture/video URL.", ephemeral=True)
+            await self.hb_send_message(interaction, message="Not a valid picture/video URL.")
             return
         await interaction.response.defer(ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         async with aiohttp.ClientSession() as session:
@@ -324,7 +336,6 @@ class ARG(commands.Cog, name="ARG"):
             datetime.timedelta(days=1)
         first_tweet_date = datetime.datetime(
             self.first_tweet_date[0], self.first_tweet_date[1], self.first_tweet_date[2], hour=2, tzinfo=datetime.timezone.utc)
-
         if todays_date.time() < datetime.time(2, 00):
             unix_timestamp = datetime.datetime.timestamp(
                 todays_tweet_post_date)
@@ -335,7 +346,8 @@ class ARG(commands.Cog, name="ARG"):
             tweet_sender = self.pair_names[1]
         else:
             tweet_sender = self.pair_names[0]
-        await interaction.response.send_message("Next tweet will happen <t:{}:R> and it'll be tweeted by {}.".format(str(unix_timestamp)[:10], tweet_sender), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
+        return
 
 
 def setup(bot: commands.Bot):
