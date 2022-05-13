@@ -207,6 +207,8 @@ class ARG(commands.Cog, name="ARG"):
                                             prev_bytearray, filename=f'{self.filename}_old.html'))
                                         await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=disnake.File(
                                             current_bytearray, filename=f'{self.filename}_new.html'))
+                                        prev_bytearray.seek(0)
+                                        current_bytearray.seek(0)
                             else:
                                 for channel in channels:
                                     async with channel.typing():
@@ -214,6 +216,8 @@ class ARG(commands.Cog, name="ARG"):
                                             prev_bytearray, filename=f'{self.filename}_old.html'))
                                         await channel.send(f'New HTML:', file=disnake.File(
                                             current_bytearray, filename=f'{self.filename}_new.html'))
+                                        prev_bytearray.seek(0)
+                                        current_bytearray.seek(0)
                         else:
                             self.nonce = self.get_nonce(response)
                         prevHash = currentHash
