@@ -157,15 +157,13 @@ class ARG(commands.Cog, name="ARG"):
             if not self.is_not_in_whitelist(message.channel.id):
                 # this will work fine until they start retweeting each other's tweets
                 if message.webhook_id:
-                    webhook = self.bot.fetch_webhook(message.webhook_id)
-                    if webhook.name in ["Aine Ichirai/壱来アイネ", "Binato Sotobara/卒斗原ビナト"]:
+                    if str(message.author) in ["Aine Ichirai/壱来アイネ#0000", "Binato Sotobara/卒斗原ビナト#0000"]:
                         if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
                             await message.reply('<:MizukiThumbsUp:925566710243803156>')
                             return
                         elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
                             await message.reply('<:MizukiThumbsUp:925566710243803156>')
                             return
-
     # monitors hiddenbats site for any changes
 
     async def monitor_bats(self):
