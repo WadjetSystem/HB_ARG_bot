@@ -71,6 +71,25 @@ class ARG(commands.Cog, name="ARG"):
         English = 'en'
         Japanese = 'jp'
 
+    # sending hidden bats HTML
+    async def send_html_message(self, channels, prev_bytearray, current_bytearray, prev_nonce):
+        text_prev = "Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n"
+        text_new = str()
+        if prev_nonce != self.nonce:
+            text_prev += f"Previous nonce: {prev_nonce}\n"
+            text_new = f"New nonce: {self.nonce}\n"
+        text_prev += "Previous HTML:"
+        text_new += "New HTML:"
+        for channel in channels:
+            async with channel.typing():
+                await channel.send(text_prev, file=disnake.File(
+                    prev_bytearray, filename=f'{self.filename}_old.html'))
+                await channel.send(text_new, file=disnake.File(
+                    current_bytearray, filename=f'{self.filename}_new.html'))
+                # seek to start, otherwise the file won't send
+                prev_bytearray.seek(0)
+                current_bytearray.seek(0)
+
     # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
 
     def bats_values(self, inputstring):
@@ -199,25 +218,8 @@ class ARG(commands.Cog, name="ARG"):
                             current_bytearray = self.response_to_byte_array(
                                 response)
                             # notify about changes
-                            # TODO - clean this up, maybe put it into a separate function
-                            if prev_nonce != self.nonce:
-                                for channel in channels:
-                                    async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious nonce: {prev_nonce}\nPrevious HTML:', file=disnake.File(
-                                            prev_bytearray, filename=f'{self.filename}_old.html'))
-                                        await channel.send(f'New nonce: {self.nonce}\nNew HTML:', file=disnake.File(
-                                            current_bytearray, filename=f'{self.filename}_new.html'))
-                                        prev_bytearray.seek(0)
-                                        current_bytearray.seek(0)
-                            else:
-                                for channel in channels:
-                                    async with channel.typing():
-                                        await channel.send(f'Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\nPrevious HTML:', file=disnake.File(
-                                            prev_bytearray, filename=f'{self.filename}_old.html'))
-                                        await channel.send(f'New HTML:', file=disnake.File(
-                                            current_bytearray, filename=f'{self.filename}_new.html'))
-                                        prev_bytearray.seek(0)
-                                        current_bytearray.seek(0)
+                            await self.send_html_message(
+                                channels, prev_bytearray, current_bytearray, prev_nonce)
                         else:
                             self.nonce = self.get_nonce(response)
                         prevHash = currentHash
