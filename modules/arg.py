@@ -67,10 +67,6 @@ class ARG(commands.Cog, name="ARG"):
 
     # helper functions
 
-    class Language(str, Enum):
-        English = 'en'
-        Japanese = 'jp'
-
     # sending hidden bats HTML
     async def send_html_message(self, channels, prev_bytearray, current_bytearray, prev_nonce):
         text_prev = "Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n"
@@ -235,11 +231,10 @@ class ARG(commands.Cog, name="ARG"):
 
     # slash commands
 
-    # TODO - maybe use a method that lets us describe the variable itself
     @commands.slash_command(
-        name="password", description='Tries the password on the hiddenbats site, e.g. "PAN".'
+        name="password", description='Tries the password on the hiddenbats site.'
     )
-    async def password(self, interaction=Interaction, *, password: str, language: Language = 'en'):
+    async def password(self, interaction=Interaction, *, password: str = commands.Param(description="a Nirvana Spell, e.g. PAN"), language: str = commands.Param(description="Language to use", choices=["English", "Japanese"])):
         if self.nonce == None:
             await interaction.response.send_message("Nonce is missing. Please wait a bit or contact the bot's creator if this persists.", ephemeral=self.is_not_in_whitelist(interaction.channel_id))
             return
@@ -247,7 +242,7 @@ class ARG(commands.Cog, name="ARG"):
         form_data.add_field("action", "hiddenbats_password_check")
         form_data.add_field("nonce", self.nonce)
         form_data.add_field("password", password)
-        if language == 'jp':
+        if language == 'Japanese':
             url = "https://sunaiku-foundation.com/wp-admin/admin-ajax.php"
         else:
             url = "https://sunaiku-foundation.com/en/wp-admin/admin-ajax.php"
@@ -265,16 +260,16 @@ class ARG(commands.Cog, name="ARG"):
         return
 
     @commands.slash_command(
-        name="values", description="Displays values for a Bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
+        name="values", description="Displays values for a Bats489 encrypted string."
     )
-    async def values(self, interaction=Interaction, *, string):
+    async def values(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
         await interaction.response.send_message(self.bats_values(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
 
     @commands.slash_command(
-        name="decrypt", description="Fully decrypts a Bats489 encrypted string, e.g. bluesnake yellowpenguin whitegiraffe."
+        name="decrypt", description="Fully decrypts a Bats489 encrypted string."
     )
-    async def decrypt(self, interaction=Interaction, *, string):
+    async def decrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. bluesnake yellowpenguin whitegiraffe.")):
         await interaction.response.send_message(self.bats_decrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
 
@@ -289,14 +284,14 @@ class ARG(commands.Cog, name="ARG"):
     @commands.slash_command(
         name="encrypt", description="Encrypts a string with Bats489."
     )
-    async def encrypt(self, interaction=Interaction, *, string):
+    async def encrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. PAN.")):
         await interaction.response.send_message(self.bats_encrypt(string), ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
 
     @commands.slash_command(
         name="media", description="Mirrors the specified picture/video from the Sunaiku Foundation website."
     )
-    async def media(self, interaction=Interaction, *, url):
+    async def media(self, interaction=Interaction, *, url: str = commands.Param(description="a Sunaiku Foundation media URL")):
         if not url.startswith("https://sunaiku-foundation.com"):
             await interaction.response.send_message("Not a valid Sunaiku Foundation URL.", ephemeral=True)
             return
