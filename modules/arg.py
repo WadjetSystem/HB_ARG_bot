@@ -17,8 +17,9 @@ from enum import Enum
 
 
 def clean_text(string):
-    string = string.replace("</h2><p>", "**\n\n")
+    string = string.replace("</h2>", "**\n\n")
     string = string.replace("<br>", "\n")
+    string = string.replace("<p>", "")
     string = string.replace("</p>", "")
     string = string.replace("<h2>", "**")
     return string
@@ -187,10 +188,10 @@ class ARG(commands.Cog, name="ARG"):
                 if message.webhook_id:
                     if str(message.author) in ["Aine Ichirai/壱来アイネ#0000", "Binato Sotobara/卒斗原ビナト#0000"]:
                         if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
-                            await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                            await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
                         elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
-                            await message.reply('<:MizukiThumbsUp:925566710243803156>')
+                            await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
     # monitors hiddenbats site for any changes
 
@@ -247,7 +248,7 @@ class ARG(commands.Cog, name="ARG"):
     @commands.slash_command(
         name="password", description='Tries the password on the hiddenbats site.'
     )
-    async def password(self, interaction=Interaction, *, password: str = commands.Param(description="a Nirvana Spell, e.g. PAN"), language: str = commands.Param(description="Language to use", choices=["English", "Japanese"])):
+    async def password(self, interaction=Interaction, *, password: str = commands.Param(description="a Nirvana Spell, e.g. PAN"), language: str = commands.Param(default=0, description="Language to use", choices=["English", "Japanese"])):
         if self.nonce == None:
             await interaction.response.send_message("Nonce is missing. Please wait a bit or contact the bot's creator if this persists.", ephemeral=self.is_not_in_whitelist(interaction.channel_id))
             return
