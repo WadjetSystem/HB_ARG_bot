@@ -11,6 +11,7 @@ import re
 import datetime
 from lxml import html
 from urllib.parse import urlparse, unquote
+import tweepy
 from enum import Enum
 
 # clean text from html tags
@@ -35,8 +36,10 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_monitoring()
         self.setup_discord_channels()
         self.setup_pair_info()
+        self.setup_balance()
 
         asyncio.ensure_future(self.monitor_bats())
+        asyncio.ensure_future(self.monitor_balance_tweets())
 
     # setup functions
 
@@ -47,8 +50,17 @@ class ARG(commands.Cog, name="ARG"):
         }
         self.encryptkey = {y: x for x, y in self.decryptkey.items()}
 
+        self.morsekey = {
+            ".-":"A"
+            ,"...":"S"
+            ,"-.-.":"C"
+            ,".--.":"P"
+        }
+
     def setup_monitoring(self):
         self.bats_url = "https://sunaiku-foundation.com/en/hiddenbats/"
+        self.balance_tweets = [["Aine", 1526019608116969472, None, ":purple_circle:"],
+                               ["Binato", 1526019606426488832, None, ":orange_circle:"]]
         self.filename = "hiddenbats"
         self.nonce = None
 
@@ -65,6 +77,14 @@ class ARG(commands.Cog, name="ARG"):
         self.first_tweet_date = orjson.loads(
             os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
         )
+
+    def setup_balance(self):
+        # Authenticate to Twitter
+        #self.twitter_api = tweepy.Client("B0tGGDHuHZ9onau4CYJpBJjCP", "kkPDajpD5pkyRoxmLXysEoerSaBFThEtSQ6X4AhmBkM24MaeeM",
+        #"28374587-KgM9VINRNetThVWsWMS6EpI6ukEvI3UsdA9Eangie", "XHi1v4MHcVBI38bgwPA6DPlx2GA3o30EzMJhcQGuqi1Kn")
+        self.twitter_api = tweepy.Client("AAAAAAAAAAAAAAAAAAAAAD%2BRcgEAAAAA%2BVXVtg9L4eHMGGwVf4V5cjh1RiQ%3De1YeBWkwySE3nGqkDrcz8eY9QSYHmBtz6t5fOVv88cjGx1XERF")
+
+        x = 2
 
     # helper functions
 
@@ -99,6 +119,54 @@ class ARG(commands.Cog, name="ARG"):
                 # seek to start, otherwise the file won't send
                 prev_bytearray.seek(0)
                 current_bytearray.seek(0)
+
+    # sending balance tweet alert
+
+    def get_balance_tweet_message(self):
+
+        text = ""
+
+        for tweet in self.balance_tweets:
+
+            text += "Current status of {}**{}'s** tweet:\nLikes: {} -- RTs: {} -- QRTs: {}\n".format(tweet[3], tweet[0], tweet[2].data.public_metrics["like_count"], tweet[2].data.public_metrics["retweet_count"], tweet[2].data.public_metrics["quote_count"])
+        
+        tweeter1 = self.balance_tweets[0]
+        tweeter2 = self.balance_tweets[1]
+        tweet1 = tweeter1[2]
+        tweet2 = tweeter2[2]
+        likes1 = tweet1.data.public_metrics["like_count"]
+        rts1 = tweet1.data.public_metrics["retweet_count"]
+        qrts1 = tweet1.data.public_metrics["quote_count"]
+        likes2 = tweet2.data.public_metrics["like_count"]
+        rts2 = tweet2.data.public_metrics["retweet_count"]
+        qrts2 = tweet2.data.public_metrics["quote_count"]        
+        diff_likes = abs(likes1 - likes2)
+        diff_rts = abs(rts1 - rts2)
+        diff_qrts = abs(qrts1 - qrts2)
+
+        tweeter1_text = "{}**{}**".format(tweeter1[3], tweeter1[0])
+        tweeter2_text = "{}**{}**".format(tweeter2[3], tweeter2[0])
+        diff_likes_text = "**0**"
+        diff_rts_text = "**0**"
+        diff_qrts_text = "**0**"
+        if diff_likes != 0:
+            diff_likes_text = [tweeter1_text, tweeter2_text][likes2 > likes1] + " +" + str(diff_likes)
+        if diff_rts != 0:
+            diff_rts_text = [tweeter1_text, tweeter2_text][rts2 > rts1] + " +" + str(diff_rts)
+        if diff_qrts != 0:
+            diff_qrts_text = [tweeter1_text, tweeter2_text][qrts2 > qrts1] + " +" + str(diff_qrts)
+            
+        text += "**Difference in Likes**: {}\n**Difference in RTs**: {}\n**Difference in QRTs**: {}".format(diff_likes_text, diff_rts_text, diff_qrts_text)
+
+        return text
+
+    async def send_balance_tweet_message(self, channels):
+
+        text = self.get_balance_tweet_message()
+
+        for channel in channels:
+            async with channel.typing():
+                await channel.send(text)
 
     # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
 
@@ -156,6 +224,12 @@ class ARG(commands.Cog, name="ARG"):
                 data = await r.read()
                 return data
 
+    async def get_balance_tweet(self, session, url):
+        async with session.get(url) as r:
+            if r.status == 200:
+                data = await r.read()
+                return data
+
     def is_not_in_whitelist(self, channel_id):
         return not channel_id in self.command_channels
 
@@ -193,6 +267,7 @@ class ARG(commands.Cog, name="ARG"):
                         elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
+    
     # monitors hiddenbats site for any changes
 
     async def monitor_bats(self):
@@ -200,17 +275,17 @@ class ARG(commands.Cog, name="ARG"):
         prevHash = ""
         prevResponse = ""
         await self.bot.wait_until_ready()
-        print('Starting bats monitoring.')
+        print('(bats) Starting bats monitoring.')
         channels = [self.bot.get_channel(channel)
                     for channel in self.monitor_channels]
         # check if bot can actually access all monitor channels
         if None in channels:
-            print('Failed to get info for a channel, retrying.')
+            print('(bats) Failed to get info for a channel, retrying.')
             await asyncio.sleep(10)  # wait 10 seconds before trying again
             channels = [self.bot.get_channel(channel)
                         for channel in self.monitor_channels]
             if None in channels:
-                print('Failed to get info for a channel.')
+                print('(bats) Failed to get info for a channel.')
                 channels = list(filter(None, channels))
         async with aiohttp.ClientSession() as session:
             while True:
@@ -242,6 +317,44 @@ class ARG(commands.Cog, name="ARG"):
                     for channel in channels:
                         channel.send(
                             'An error happened, please report it to the bot creator kthx:', e)
+
+    # monitors balance tweets
+
+    async def monitor_balance_tweets(self):
+
+        await self.bot.wait_until_ready()
+        print('(balance) Starting balance tweets monitoring.')
+        channels = [self.bot.get_channel(channel)
+                    for channel in self.monitor_channels]
+        # check if bot can actually access all monitor channels
+        if None in channels:
+            print('(balance) Failed to get info for a channel, retrying.')
+            await asyncio.sleep(10)  # wait 10 seconds before trying again
+            channels = [self.bot.get_channel(channel)
+                        for channel in self.monitor_channels]
+            if None in channels:
+                print('(balance) Failed to get info for a channel.')
+                channels = list(filter(None, channels))
+
+        while True:
+            try:
+
+                for tweet_idx in range(0, len(self.balance_tweets)):
+                    
+                    tweet = self.twitter_api.get_tweet(self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
+                    self.balance_tweets[tweet_idx][2] = tweet
+
+                await self.send_balance_tweet_message(channels)
+
+                # wait for 30 minutes
+                await asyncio.sleep(1800)
+
+            # handle exceptions
+            except Exception as e:
+                print("Error", e)
+                for channel in channels:
+                    channel.send(
+                        'An error happened, please report it to the bot creator kthx:', e)
 
     # slash commands
 
@@ -292,6 +405,14 @@ class ARG(commands.Cog, name="ARG"):
     )
     async def encrypt(self, interaction=Interaction, *, string: str = commands.Param(description="String to encrypt, e.g. PAN.")):
         await self.hb_send_message(interaction, message=self.bats_encrypt(string))
+        return
+
+    @commands.slash_command(
+        name="balance", description="Retrieve Balance Experiment status."
+    )
+    async def balance(self, interaction=Interaction):
+        message = self.get_balance_tweet_message()
+        await interaction.response.send_message(message, ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
 
     @commands.slash_command(
@@ -347,6 +468,10 @@ class ARG(commands.Cog, name="ARG"):
             tweet_sender = self.pair_names[1]
         else:
             tweet_sender = self.pair_names[0]
+
+        # TEMPORARY
+        tweet_sender = "Hidden Bats"
+
         await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
         return
 
