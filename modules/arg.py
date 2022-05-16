@@ -80,11 +80,7 @@ class ARG(commands.Cog, name="ARG"):
 
     def setup_balance(self):
         # Authenticate to Twitter
-        #self.twitter_api = tweepy.Client("B0tGGDHuHZ9onau4CYJpBJjCP", "kkPDajpD5pkyRoxmLXysEoerSaBFThEtSQ6X4AhmBkM24MaeeM",
-        #"28374587-KgM9VINRNetThVWsWMS6EpI6ukEvI3UsdA9Eangie", "XHi1v4MHcVBI38bgwPA6DPlx2GA3o30EzMJhcQGuqi1Kn")
         self.twitter_api = tweepy.Client(os.getenv('TWITTER_BEARER_CODE', ''))
-
-        x = 2
 
     # helper functions
 
@@ -220,12 +216,6 @@ class ARG(commands.Cog, name="ARG"):
 
     async def get_bats(self, session):
         async with session.get(self.bats_url) as r:
-            if r.status == 200:
-                data = await r.read()
-                return data
-
-    async def get_balance_tweet(self, session, url):
-        async with session.get(url) as r:
             if r.status == 200:
                 data = await r.read()
                 return data
