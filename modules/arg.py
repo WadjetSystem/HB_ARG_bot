@@ -9,6 +9,7 @@ import io
 import os
 import re
 import datetime
+import time
 from lxml import html
 from urllib.parse import urlparse, unquote
 import tweepy
@@ -32,6 +33,7 @@ class ARG(commands.Cog, name="ARG"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
 
+        self.setup_maintenance()
         self.setup_bats_parser()
         self.setup_monitoring()
         self.setup_discord_channels()
@@ -44,6 +46,12 @@ class ARG(commands.Cog, name="ARG"):
         asyncio.ensure_future(self.update_activity())
 
     # setup functions
+
+    def setup_maintenance(self):
+        self.staff_roles = orjson.loads(
+            os.getenv('STAFF_ROLES', '[]'))
+        self.admin_users = orjson.loads(
+            os.getenv('ADMIN_USERS', '[]'))
 
     def setup_bats_parser(self):
         # maybe we could try getting the key automatically from the document, or read it from a file
@@ -84,6 +92,7 @@ class ARG(commands.Cog, name="ARG"):
     def setup_balance(self):
         # Authenticate to Twitter
         self.twitter_api = tweepy.Client(os.getenv('TWITTER_BEARER_CODE', ''))
+        self.balance_delay = 1800  # by default, 30 minutes, but can be changed later
 
     def setup_activity(self):
         self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
@@ -104,6 +113,15 @@ class ARG(commands.Cog, name="ARG"):
         else:
             await interaction.response.send_message(message, files=files, ephemeral=self.is_not_in_whitelist(interaction.channel_id))
         return
+
+# verifies if the user has staff perms
+    def verify_permissions(self, interaction):
+        if interaction.user.id in self.admin_users:
+            return True
+        for role in self.staff_roles:
+            if interaction.user.get_role(role) != None:
+                return True
+        return False
 
     # sending hidden bats HTML
 
@@ -165,12 +183,11 @@ class ARG(commands.Cog, name="ARG"):
         return text
 
     async def send_balance_tweet_message(self, channels):
-
         text = self.get_balance_tweet_message()
-
         for channel in channels:
             async with channel.typing():
                 await channel.send(text)
+        return
 
     # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
 
@@ -336,7 +353,10 @@ class ARG(commands.Cog, name="ARG"):
             try:
                 await self.send_balance_tweet_message(channels)
                 # wait for 30 minutes
-                await asyncio.sleep(1800)
+                current_time = time.time()
+                while current_time + self.balance_delay > time.time():
+                    await asyncio.sleep(1)
+
             # handle exceptions
             except Exception as e:
                 print("Error", e)
@@ -472,6 +492,17 @@ class ARG(commands.Cog, name="ARG"):
             tweet_sender = self.overwrite_name
 
         await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
+        return
+
+    @commands.slash_command(
+        name="change_delay", description="STAFF ONLY - adjust Twitter balance monitoring delay"
+    )
+    async def change_delay(self, interaction=Interaction, *, delay: int = commands.Param(description="Delay between automatic balance posts (seconds). Default is 1800.")):
+        if self.verify_permissions(interaction):
+            self.balance_delay = delay
+            await self.hb_send_message(interaction, message=f"Delay has been updated to {delay} seconds. <:MizukiThumbsUp:925566710243803156>")
+        else:
+            await self.hb_send_message(interaction, message="You're not staff.")
         return
 
 
