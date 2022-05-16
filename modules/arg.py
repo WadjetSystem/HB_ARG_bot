@@ -120,6 +120,11 @@ class ARG(commands.Cog, name="ARG"):
 
     def get_balance_tweet_message(self):
 
+        for tweet_idx in range(0, len(self.balance_tweets)):
+            
+            tweet = self.twitter_api.get_tweet(self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
+            self.balance_tweets[tweet_idx][2] = tweet
+
         text = ""
 
         for tweet in self.balance_tweets:
@@ -328,11 +333,6 @@ class ARG(commands.Cog, name="ARG"):
 
         while True:
             try:
-
-                for tweet_idx in range(0, len(self.balance_tweets)):
-                    
-                    tweet = self.twitter_api.get_tweet(self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
-                    self.balance_tweets[tweet_idx][2] = tweet
 
                 await self.send_balance_tweet_message(channels)
 
