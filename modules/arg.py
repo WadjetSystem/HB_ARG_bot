@@ -82,7 +82,7 @@ class ARG(commands.Cog, name="ARG"):
         # Authenticate to Twitter
         #self.twitter_api = tweepy.Client("B0tGGDHuHZ9onau4CYJpBJjCP", "kkPDajpD5pkyRoxmLXysEoerSaBFThEtSQ6X4AhmBkM24MaeeM",
         #"28374587-KgM9VINRNetThVWsWMS6EpI6ukEvI3UsdA9Eangie", "XHi1v4MHcVBI38bgwPA6DPlx2GA3o30EzMJhcQGuqi1Kn")
-        self.twitter_api = tweepy.Client("AAAAAAAAAAAAAAAAAAAAAD%2BRcgEAAAAA%2BVXVtg9L4eHMGGwVf4V5cjh1RiQ%3De1YeBWkwySE3nGqkDrcz8eY9QSYHmBtz6t5fOVv88cjGx1XERF")
+        self.twitter_api = tweepy.Client(os.getenv('TWITTER_BEARER_CODE', ''))
 
         x = 2
 
