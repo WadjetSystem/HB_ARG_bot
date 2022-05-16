@@ -12,6 +12,7 @@ import datetime
 from lxml import html
 from urllib.parse import urlparse, unquote
 import tweepy
+import random
 
 # clean text from html tags
 
@@ -36,9 +37,11 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_discord_channels()
         self.setup_pair_info()
         self.setup_balance()
+        self.setup_activity()
 
         asyncio.ensure_future(self.monitor_bats())
         asyncio.ensure_future(self.monitor_balance_tweets())
+        asyncio.ensure_future(self.update_activity())
 
     # setup functions
 
@@ -75,11 +78,18 @@ class ARG(commands.Cog, name="ARG"):
         self.first_tweet_date = orjson.loads(
             os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
         )
-        self.overwrite_name = os.getenv('TWEETER_OVERWRITE') # overwrites current tweeter if not None
+        # overwrites current tweeter if not None
+        self.overwrite_name = os.getenv('TWEETER_OVERWRITE')
 
     def setup_balance(self):
         # Authenticate to Twitter
         self.twitter_api = tweepy.Client(os.getenv('TWITTER_BEARER_CODE', ''))
+
+    def setup_activity(self):
+        self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
+                           (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
+                                                                                        "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
+                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.watching, "Danganronpa 3 💀")]
 
     # helper functions
 
@@ -118,52 +128,39 @@ class ARG(commands.Cog, name="ARG"):
     # sending balance tweet alert
 
     def get_balance_tweet_message(self):
-
         for tweet_idx in range(0, len(self.balance_tweets)):
-
             tweet = self.twitter_api.get_tweet(
                 self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
             self.balance_tweets[tweet_idx][2] = tweet
-
         text = ""
-
         for tweet in self.balance_tweets:
-
-            text += "Current status of {}**{}'s** tweet:\nLikes: {} -- RTs: {} -- QRTs: {}\n".format(
-                tweet[3], tweet[0], tweet[2].data.public_metrics["like_count"], tweet[2].data.public_metrics["retweet_count"], tweet[2].data.public_metrics["quote_count"])
-
-        tweeter1 = self.balance_tweets[0]
-        tweeter2 = self.balance_tweets[1]
-        tweet1 = tweeter1[2]
-        tweet2 = tweeter2[2]
-        likes1 = tweet1.data.public_metrics["like_count"]
-        rts1 = tweet1.data.public_metrics["retweet_count"]
-        qrts1 = tweet1.data.public_metrics["quote_count"]
-        likes2 = tweet2.data.public_metrics["like_count"]
-        rts2 = tweet2.data.public_metrics["retweet_count"]
-        qrts2 = tweet2.data.public_metrics["quote_count"]
-        diff_likes = abs(likes1 - likes2)
-        diff_rts = abs(rts1 - rts2)
-        diff_qrts = abs(qrts1 - qrts2)
-
-        tweeter1_text = "{}**{}**".format(tweeter1[3], tweeter1[0])
-        tweeter2_text = "{}**{}**".format(tweeter2[3], tweeter2[0])
-        diff_likes_text = "**0**"
-        diff_rts_text = "**0**"
-        diff_qrts_text = "**0**"
-        if diff_likes != 0:
-            diff_likes_text = [
-                tweeter1_text, tweeter2_text][likes2 > likes1] + " +" + str(diff_likes)
-        if diff_rts != 0:
-            diff_rts_text = [tweeter1_text,
-                             tweeter2_text][rts2 > rts1] + " +" + str(diff_rts)
-        if diff_qrts != 0:
-            diff_qrts_text = [
-                tweeter1_text, tweeter2_text][qrts2 > qrts1] + " +" + str(diff_qrts)
-
-        text += "**Difference in Likes**: {}\n**Difference in RTs**: {}\n**Difference in QRTs**: {}".format(
-            diff_likes_text, diff_rts_text, diff_qrts_text)
-        if (diff_likes == 0) and (diff_rts == 0) and (diff_qrts == 0):
+            text += f"Current status of {tweet[3]}**{tweet[0]}'s** tweet:\nLikes: {tweet[2].data.public_metrics['like_count']} -- RTs: {tweet[2].data.public_metrics['retweet_count']} -- QRTs: {tweet[2].data.public_metrics['quote_count']}\n"
+        tweeter_data = list()
+        for tweeter in self.balance_tweets:
+            tweet = tweeter[2]
+            likes = tweet.data.public_metrics["like_count"]
+            rts = tweet.data.public_metrics["retweet_count"]
+            qrts = tweet.data.public_metrics["quote_count"]
+            tweeter_data.append((likes, rts, qrts))
+        diff_list = list()  # likes, rts, qrts, like+rts, all
+        for i in range(3):
+            diff_list.append(tweeter_data[0][i] - tweeter_data[1][i])
+        diff_list.append(diff_list[0] + diff_list[1])  # like + rts
+        diff_list.append(diff_list[2] + diff_list[3])  # all
+        # aine
+        tweeter1_text = f"{self.balance_tweets[0][3]}**{self.balance_tweets[0][0]}**"
+        # binato
+        tweeter2_text = f"{self.balance_tweets[1][3]}**{self.balance_tweets[1][0]}**"
+        # diff likes, diff retweets, diff qrts, diff like+rts and diff all
+        diff_text_list = ["**0**" for x in range(0, 5)]
+        for i in range(len(diff_list)):
+            if diff_list[i] != 0:
+                diff_text_list[
+                    i] = f"{[tweeter1_text, tweeter2_text][diff_list[i] < 0]} +{abs(diff_list[i])}"
+        text += f"**Difference in Likes**: {diff_text_list[0]}\n**Difference in RTs**: {diff_text_list[1]}\n**Difference in QRTs**: {diff_text_list[2]}\n**Total difference**: {diff_text_list[3]}"
+        if diff_list[2] != 0:
+            text += f"\n**Total difference w/ QRTs**: {diff_text_list[4]}"
+        if (diff_list[0] == 0) and (diff_list[1] == 0) and (diff_list[2] == 0):
             text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
         return text
 
@@ -346,6 +343,17 @@ class ARG(commands.Cog, name="ARG"):
                 for channel in channels:
                     channel.send(
                         'An error happened, please report it to the bot creator kthx:', e)
+
+    # changes activity randomly every 30 minutes
+
+    async def update_activity(self):
+        await self.bot.wait_until_ready()
+        while True:
+            random_activity = random.choice(self.activities)
+            await self.bot.change_presence(
+                activity=disnake.Activity(
+                    type=random_activity[0], name=random_activity[1]))
+            await asyncio.sleep(1800)  # wait 30 minutes
 
     # slash commands
 

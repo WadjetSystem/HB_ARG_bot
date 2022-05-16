@@ -17,10 +17,6 @@ bot.load_extension("modules.arg")
 @bot.event
 async def on_ready():
     print(f'We have logged in as {bot.user}')
-    await bot.change_presence(
-        activity=disnake.Activity(
-            type=disnake.ActivityType.playing, name="Zero Time Dilemma 🐌")
-    )
 
 
 @bot.event
