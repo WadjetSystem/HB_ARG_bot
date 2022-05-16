@@ -12,7 +12,6 @@ import datetime
 from lxml import html
 from urllib.parse import urlparse, unquote
 import tweepy
-from enum import Enum
 
 # clean text from html tags
 
@@ -51,10 +50,7 @@ class ARG(commands.Cog, name="ARG"):
         self.encryptkey = {y: x for x, y in self.decryptkey.items()}
 
         self.morsekey = {
-            ".-":"A"
-            ,"...":"S"
-            ,"-.-.":"C"
-            ,".--.":"P"
+            ".-": "A", "...": "S", "-.-.": "C", ".--.": "P"
         }
 
     def setup_monitoring(self):
@@ -65,8 +61,10 @@ class ARG(commands.Cog, name="ARG"):
         self.nonce = None
 
     def setup_discord_channels(self):
-        self.monitor_channels = orjson.loads(
-            os.getenv('DISCORD_MONITOR_CHANNELS', '[]'))
+        self.bats_monitor_channels = orjson.loads(
+            os.getenv('BATS_MONITOR_CHANNELS', '[]'))
+        self.twitter_monitor_channels = orjson.loads(
+            os.getenv('TWITTER_MONITOR_CHANNELS', '[]'))
         self.command_channels = orjson.loads(
             os.getenv('DISCORD_COMMAND_CHANNELS', '[]'))
 
@@ -77,6 +75,7 @@ class ARG(commands.Cog, name="ARG"):
         self.first_tweet_date = orjson.loads(
             os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
         )
+        self.overwrite_name = os.getenv('TWEETER_OVERWRITE') # overwrites current tweeter if not None
 
     def setup_balance(self):
         # Authenticate to Twitter
@@ -121,16 +120,18 @@ class ARG(commands.Cog, name="ARG"):
     def get_balance_tweet_message(self):
 
         for tweet_idx in range(0, len(self.balance_tweets)):
-            
-            tweet = self.twitter_api.get_tweet(self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
+
+            tweet = self.twitter_api.get_tweet(
+                self.balance_tweets[tweet_idx][1], tweet_fields=["public_metrics"])
             self.balance_tweets[tweet_idx][2] = tweet
 
         text = ""
 
         for tweet in self.balance_tweets:
 
-            text += "Current status of {}**{}'s** tweet:\nLikes: {} -- RTs: {} -- QRTs: {}\n".format(tweet[3], tweet[0], tweet[2].data.public_metrics["like_count"], tweet[2].data.public_metrics["retweet_count"], tweet[2].data.public_metrics["quote_count"])
-        
+            text += "Current status of {}**{}'s** tweet:\nLikes: {} -- RTs: {} -- QRTs: {}\n".format(
+                tweet[3], tweet[0], tweet[2].data.public_metrics["like_count"], tweet[2].data.public_metrics["retweet_count"], tweet[2].data.public_metrics["quote_count"])
+
         tweeter1 = self.balance_tweets[0]
         tweeter2 = self.balance_tweets[1]
         tweet1 = tweeter1[2]
@@ -140,7 +141,7 @@ class ARG(commands.Cog, name="ARG"):
         qrts1 = tweet1.data.public_metrics["quote_count"]
         likes2 = tweet2.data.public_metrics["like_count"]
         rts2 = tweet2.data.public_metrics["retweet_count"]
-        qrts2 = tweet2.data.public_metrics["quote_count"]        
+        qrts2 = tweet2.data.public_metrics["quote_count"]
         diff_likes = abs(likes1 - likes2)
         diff_rts = abs(rts1 - rts2)
         diff_qrts = abs(qrts1 - qrts2)
@@ -151,14 +152,19 @@ class ARG(commands.Cog, name="ARG"):
         diff_rts_text = "**0**"
         diff_qrts_text = "**0**"
         if diff_likes != 0:
-            diff_likes_text = [tweeter1_text, tweeter2_text][likes2 > likes1] + " +" + str(diff_likes)
+            diff_likes_text = [
+                tweeter1_text, tweeter2_text][likes2 > likes1] + " +" + str(diff_likes)
         if diff_rts != 0:
-            diff_rts_text = [tweeter1_text, tweeter2_text][rts2 > rts1] + " +" + str(diff_rts)
+            diff_rts_text = [tweeter1_text,
+                             tweeter2_text][rts2 > rts1] + " +" + str(diff_rts)
         if diff_qrts != 0:
-            diff_qrts_text = [tweeter1_text, tweeter2_text][qrts2 > qrts1] + " +" + str(diff_qrts)
-            
-        text += "**Difference in Likes**: {}\n**Difference in RTs**: {}\n**Difference in QRTs**: {}".format(diff_likes_text, diff_rts_text, diff_qrts_text)
+            diff_qrts_text = [
+                tweeter1_text, tweeter2_text][qrts2 > qrts1] + " +" + str(diff_qrts)
 
+        text += "**Difference in Likes**: {}\n**Difference in RTs**: {}\n**Difference in QRTs**: {}".format(
+            diff_likes_text, diff_rts_text, diff_qrts_text)
+        if (diff_likes_text == "0") and (diff_rts_text == "0") and (diff_qrts_text == "0"):
+            text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
         return text
 
     async def send_balance_tweet_message(self, channels):
@@ -262,7 +268,7 @@ class ARG(commands.Cog, name="ARG"):
                         elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
-    
+
     # monitors hiddenbats site for any changes
 
     async def monitor_bats(self):
@@ -272,13 +278,13 @@ class ARG(commands.Cog, name="ARG"):
         await self.bot.wait_until_ready()
         print('(bats) Starting bats monitoring.')
         channels = [self.bot.get_channel(channel)
-                    for channel in self.monitor_channels]
+                    for channel in self.bats_monitor_channels]
         # check if bot can actually access all monitor channels
         if None in channels:
             print('(bats) Failed to get info for a channel, retrying.')
             await asyncio.sleep(10)  # wait 10 seconds before trying again
             channels = [self.bot.get_channel(channel)
-                        for channel in self.monitor_channels]
+                        for channel in self.bats_monitor_channels]
             if None in channels:
                 print('(bats) Failed to get info for a channel.')
                 channels = list(filter(None, channels))
@@ -316,29 +322,24 @@ class ARG(commands.Cog, name="ARG"):
     # monitors balance tweets
 
     async def monitor_balance_tweets(self):
-
         await self.bot.wait_until_ready()
         print('(balance) Starting balance tweets monitoring.')
         channels = [self.bot.get_channel(channel)
-                    for channel in self.monitor_channels]
+                    for channel in self.twitter_monitor_channels]
         # check if bot can actually access all monitor channels
         if None in channels:
             print('(balance) Failed to get info for a channel, retrying.')
             await asyncio.sleep(10)  # wait 10 seconds before trying again
             channels = [self.bot.get_channel(channel)
-                        for channel in self.monitor_channels]
+                        for channel in self.twitter_monitor_channels]
             if None in channels:
                 print('(balance) Failed to get info for a channel.')
                 channels = list(filter(None, channels))
-
         while True:
             try:
-
                 await self.send_balance_tweet_message(channels)
-
                 # wait for 30 minutes
                 await asyncio.sleep(1800)
-
             # handle exceptions
             except Exception as e:
                 print("Error", e)
@@ -401,8 +402,7 @@ class ARG(commands.Cog, name="ARG"):
         name="balance", description="Retrieve Balance Experiment status."
     )
     async def balance(self, interaction=Interaction):
-        message = self.get_balance_tweet_message()
-        await interaction.response.send_message(message, ephemeral=self.is_not_in_whitelist(interaction.channel_id))
+        await self.hb_send_message(interaction, self.get_balance_tweet_message())
         return
 
     @commands.slash_command(
@@ -459,8 +459,9 @@ class ARG(commands.Cog, name="ARG"):
         else:
             tweet_sender = self.pair_names[0]
 
-        # TEMPORARY
-        tweet_sender = "Hidden Bats"
+        # overwrite name in case of special circumstances
+        if self.overwrite_name != None:
+            tweet_sender = self.overwrite_name
 
         await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
         return
