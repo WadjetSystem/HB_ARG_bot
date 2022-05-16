@@ -163,7 +163,7 @@ class ARG(commands.Cog, name="ARG"):
 
         text += "**Difference in Likes**: {}\n**Difference in RTs**: {}\n**Difference in QRTs**: {}".format(
             diff_likes_text, diff_rts_text, diff_qrts_text)
-        if (diff_likes_text == "0") and (diff_rts_text == "0") and (diff_qrts_text == "0"):
+        if (diff_likes == "0") and (diff_rts == "0") and (diff_qrts == "0"):
             text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
         return text
 
