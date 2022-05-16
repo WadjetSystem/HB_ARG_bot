@@ -3,3 +3,4 @@ disnake
 aiohttp
 orjson
 lxml
+tweepy
