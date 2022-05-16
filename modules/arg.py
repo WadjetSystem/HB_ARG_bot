@@ -175,9 +175,7 @@ class ARG(commands.Cog, name="ARG"):
             if diff_list[i] != 0:
                 diff_text_list[
                     i] = f"{[tweeter1_text, tweeter2_text][diff_list[i] < 0]} +{abs(diff_list[i])}"
-        text += f"**Difference in Likes**: {diff_text_list[0]}\n**Difference in RTs**: {diff_text_list[1]}\n**Difference in QRTs**: {diff_text_list[2]}"
-        #if diff_list[2] != 0:
-        text += f"\n**Total difference w/ QRTs**: {diff_text_list[4]}"
+        text += f"**Difference in Likes**: {diff_text_list[0]}\n**Difference in RTs**: {diff_text_list[1]}\n**Difference in QRTs**: {diff_text_list[2]}\n**Total difference**: {diff_text_list[4]}"
         if (diff_list[0] == 0) and (diff_list[1] == 0) and (diff_list[2] == 0):
             text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
         return text
