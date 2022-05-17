@@ -38,11 +38,11 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_monitoring()
         self.setup_discord_channels()
         self.setup_pair_info()
-        self.setup_balance()
+        #self.setup_balance()
         self.setup_activity()
 
         asyncio.ensure_future(self.monitor_bats())
-        asyncio.ensure_future(self.monitor_balance_tweets())
+        #asyncio.ensure_future(self.monitor_balance_tweets())
         asyncio.ensure_future(self.update_activity())
 
     # setup functions
@@ -424,12 +424,12 @@ class ARG(commands.Cog, name="ARG"):
         await self.hb_send_message(interaction, message=self.bats_encrypt(string))
         return
 
-    @commands.slash_command(
+    """@commands.slash_command(
         name="balance", description="Retrieve Balance Experiment status."
     )
     async def balance(self, interaction=Interaction):
         await self.hb_send_message(interaction, self.get_balance_tweet_message())
-        return
+        return"""
 
     @commands.slash_command(
         name="thumbsup", description="you have 21 minutes to get help"
