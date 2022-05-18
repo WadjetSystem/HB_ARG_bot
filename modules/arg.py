@@ -238,10 +238,15 @@ class ARG(commands.Cog, name="ARG"):
             return joinedlist
 
     async def get_bats(self, session):
-        async with session.get(self.bats_url) as r:
-            if r.status == 200:
-                data = await r.read()
-                return data
+        try:
+            async with session.get(self.bats_url) as r:
+                if r.status == 200:
+                    data = await r.read()
+                    return data
+        except Exception as e:
+            print('An error occured while getting bats info -', e)
+            return None
+
 
     def is_not_in_whitelist(self, channel_id):
         return not channel_id in self.command_channels
@@ -305,6 +310,8 @@ class ARG(commands.Cog, name="ARG"):
                 try:
                     # perform the get request and store it in a var
                     response = await self.get_bats(session)
+                    if response == None:
+                        continue
                     currentHash = hashlib.sha1(response).hexdigest()
                     # check if new hash is same as the previous hash
                     if prevHash != currentHash:
@@ -316,8 +323,9 @@ class ARG(commands.Cog, name="ARG"):
                             current_bytearray = self.response_to_byte_array(
                                 response)
                             # notify about changes
-                            await self.send_html_message(
-                                channels, prev_bytearray, current_bytearray, prev_nonce)
+                            if prev_nonce != self.nonce:
+                                await self.send_html_message(
+                                    channels, prev_bytearray, current_bytearray, prev_nonce)
                         else:
                             self.nonce = self.get_nonce(response)
                         prevHash = currentHash
