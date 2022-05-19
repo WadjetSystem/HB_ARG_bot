@@ -86,8 +86,8 @@ class ARG(commands.Cog, name="ARG"):
         self.first_tweet_date = orjson.loads(
             os.getenv('PAIR_FIRST_TWEET_DATE', '[]')
         )
-        # overwrites current tweeter if not None
-        self.overwrite_name = os.getenv('TWEETER_OVERWRITE')
+        # overwrites current tweeter if not blank
+        self.overwrite_name = os.getenv('TWEETER_OVERWRITE', "")
 
     def setup_balance(self):
         # Authenticate to Twitter
@@ -494,7 +494,7 @@ class ARG(commands.Cog, name="ARG"):
             tweet_sender = self.pair_names[0]
 
         # overwrite name in case of special circumstances
-        if self.overwrite_name != None:
+        if len(self.overwrite_name) > 0:
             tweet_sender = self.overwrite_name
 
         await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
