@@ -98,7 +98,7 @@ class ARG(commands.Cog, name="ARG"):
         self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
                            (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
                                                                                         "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
-                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.watching, "Danganronpa 3 💀")]
+                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼") ]
 
     # helper functions
 
@@ -278,11 +278,11 @@ class ARG(commands.Cog, name="ARG"):
             if not self.is_not_in_whitelist(message.channel.id):
                 # this will work fine until they start retweeting each other's tweets
                 if message.webhook_id:
-                    if str(message.author) in ["Aine Ichirai/壱来アイネ#0000", "Binato Sotobara/卒斗原ビナト#0000"]:
-                        if message.content.find('https://twitter.com/Aine_Ichirai/status/') != -1:
+                    if str(message.author) in ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]:
+                        if message.content.find('https://twitter.com/LuminaRikujo/status/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
-                        elif message.content.find('https://twitter.com/Binato_Sotobara/status/') != -1:
+                        elif message.content.find('https://twitter.com/MarihaMonzen/status/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
 
