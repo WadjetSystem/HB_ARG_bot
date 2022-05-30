@@ -323,10 +323,11 @@ class ARG(commands.Cog, name="ARG"):
                 else:
                     if message.content.lower() == "we're no strangers to love":
                         await message.channel.send('you know the rules and so do AI')
-                        return
                     if message.content.find('erotic') != -1:
                         await message.add_reaction('💢')
-                        return
+                    if message.content.find('tax eva') != -1: # tax evasion is a crime
+                        await message.add_reaction('📗')
+                    return
 
     # monitors hiddenbats site for any changes
 
