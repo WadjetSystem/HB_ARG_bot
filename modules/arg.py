@@ -204,21 +204,17 @@ class ARG(commands.Cog, name="ARG"):
             status = account[2]
             followers = status.data.public_metrics["followers_count"]
             account_data.append((followers,))
-        diff_list = list()  # followers
-        for i in range(1):
-            diff_list.append(account_data[0][i] - account_data[1][i])
+        follower_diff = account_data[0][0] - account_data[1][0]
         # account 1
         account1_text = f"{self.balance_accounts[0][3]}**{self.balance_accounts[0][0]}**"
         # account 2
         account2_text = f"{self.balance_accounts[1][3]}**{self.balance_accounts[1][0]}**"
         # diff accounts
-        diff_text_list = ["**0**" for x in range(0, len(account_data[0]))]
-        for i in range(len(diff_list)):
-            if diff_list[i] != 0:
-                diff_text_list[
-                    i] = f"{[account1_text, account2_text][diff_list[i] < 0]} +{abs(diff_list[i])}"
-        text += f"**Difference in Followers**: {diff_text_list[0]}"
-        if (diff_list[0] == 0):
+        diff_text = "**0**"
+        if follower_diff != 0:
+                diff_text = f"{[account1_text, account2_text][follower_diff < 0]} +{abs(follower_diff)}"
+        text += f"**Difference in Followers**: {diff_text}"
+        if (follower_diff == 0):
             text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
         return text
 
