@@ -100,7 +100,7 @@ class ARG(commands.Cog, name="ARG"):
         self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
                            (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
                                                                                         "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
-                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼") ]
+                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼")]
 
     # helper functions
 
@@ -289,7 +289,6 @@ class ARG(commands.Cog, name="ARG"):
             print('An error occured while getting bats info -', e)
             return None
 
-
     def is_not_in_whitelist(self, channel_id):
         return not channel_id in self.command_channels
 
@@ -318,7 +317,7 @@ class ARG(commands.Cog, name="ARG"):
 
         if isinstance(message.channel, disnake.TextChannel):
             if not self.is_not_in_whitelist(message.channel.id):
-                
+
                 # this will work fine until they start retweeting each other's tweets
                 if message.webhook_id:
                     if str(message.author) in ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]:
@@ -409,7 +408,7 @@ class ARG(commands.Cog, name="ARG"):
                 channels = list(filter(None, channels))
         while True:
             try:
-                #await self.send_balance_tweet_message(channels)
+                # await self.send_balance_tweet_message(channels)
                 await self.send_balance_followers_message(channels)
                 # wait for 10 minutes
                 current_time = time.time()
@@ -490,7 +489,7 @@ class ARG(commands.Cog, name="ARG"):
     )
     async def balance(self, interaction=Interaction):
         if self.verify_permissions(interaction):
-        #await self.hb_send_message(interaction, self.get_balance_tweet_message())
+            # await self.hb_send_message(interaction, self.get_balance_tweet_message())
             await self.hb_send_message(interaction, self.get_balance_followers_message())
         else:
             await interaction.response.send_message("You're not staff.", ephemeral=True)
