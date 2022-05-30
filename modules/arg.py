@@ -90,6 +90,7 @@ class ARG(commands.Cog, name="ARG"):
         )
         # overwrites current tweeter if not blank
         self.overwrite_name = os.getenv('TWEETER_OVERWRITE', "")
+        self.current_tweeters = orjson.loads(os.getenv('CURRENT_TWEETERS', '[]')) # for example: ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]
 
     def setup_balance(self):
         # Authenticate to Twitter
@@ -212,7 +213,7 @@ class ARG(commands.Cog, name="ARG"):
         # diff accounts
         diff_text = "**0**"
         if follower_diff != 0:
-                diff_text = f"{[account1_text, account2_text][follower_diff < 0]} +{abs(follower_diff)}"
+            diff_text = f"{[account1_text, account2_text][follower_diff < 0]} +{abs(follower_diff)}"
         text += f"**Difference in Followers**: {diff_text}"
         if (follower_diff == 0):
             text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
@@ -313,19 +314,13 @@ class ARG(commands.Cog, name="ARG"):
 
         if isinstance(message.channel, disnake.TextChannel):
             if not self.is_not_in_whitelist(message.channel.id):
-
                 # this will work fine until they start retweeting each other's tweets
                 if message.webhook_id:
-                    if str(message.author) in ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]:
-                        if message.content.find('https://twitter.com/LuminaRikujo/status/') != -1:
+                    if str(message.author) in self.current_tweeters:
+                        if message.content.find('https://twitter.com/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                             return
-                        elif message.content.find('https://twitter.com/MarihaMonzen/status/') != -1:
-                            await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
-                            return
-
                 else:
-
                     if message.content.lower() == "we're no strangers to love":
                         await message.channel.send('you know the rules and so do AI')
                         return
