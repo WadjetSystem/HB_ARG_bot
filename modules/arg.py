@@ -38,11 +38,11 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_monitoring()
         self.setup_discord_channels()
         self.setup_pair_info()
-        #self.setup_balance()
+        self.setup_balance()
         self.setup_activity()
 
         asyncio.ensure_future(self.monitor_bats())
-        #asyncio.ensure_future(self.monitor_balance_tweets())
+        asyncio.ensure_future(self.monitor_balance())
         asyncio.ensure_future(self.update_activity())
 
     # setup functions
@@ -68,6 +68,8 @@ class ARG(commands.Cog, name="ARG"):
         self.bats_url = "https://sunaiku-foundation.com/en/hiddenbats/"
         self.balance_tweets = [["Aine", 1526019608116969472, None, ":purple_circle:"],
                                ["Binato", 1526019606426488832, None, ":orange_circle:"]]
+        self.balance_accounts = [["Mariha", 1526728623511969792, None, ":anger:"],
+                                 ["Lumina", 1526731623987019776, None, ":green_book:"]]
         self.filename = "hiddenbats"
         self.nonce = None
 
@@ -92,7 +94,7 @@ class ARG(commands.Cog, name="ARG"):
     def setup_balance(self):
         # Authenticate to Twitter
         self.twitter_api = tweepy.Client(os.getenv('TWITTER_BEARER_CODE', ''))
-        self.balance_delay = 1800  # by default, 30 minutes, but can be changed later
+        self.balance_delay = 600  # by default, 10 minutes, but can be changed later
 
     def setup_activity(self):
         self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
@@ -182,6 +184,46 @@ class ARG(commands.Cog, name="ARG"):
 
     async def send_balance_tweet_message(self, channels):
         text = self.get_balance_tweet_message()
+        for channel in channels:
+            async with channel.typing():
+                await channel.send(text)
+        return
+
+    # sending balance followers alert
+
+    def get_balance_followers_message(self):
+        for account_idx in range(0, len(self.balance_accounts)):
+            account = self.twitter_api.get_user(
+                id=self.balance_accounts[account_idx][1], user_fields=["public_metrics"])
+            self.balance_accounts[account_idx][2] = account
+        text = ""
+        for account in self.balance_accounts:
+            text += f"Current followers of {account[3]}**{account[0]}**: {account[2].data.public_metrics['followers_count']}\n"
+        account_data = list()
+        for account in self.balance_accounts:
+            status = account[2]
+            followers = status.data.public_metrics["followers_count"]
+            account_data.append((followers,))
+        diff_list = list()  # followers
+        for i in range(1):
+            diff_list.append(account_data[0][i] - account_data[1][i])
+        # account 1
+        account1_text = f"{self.balance_accounts[0][3]}**{self.balance_accounts[0][0]}**"
+        # account 2
+        account2_text = f"{self.balance_accounts[1][3]}**{self.balance_accounts[1][0]}**"
+        # diff accounts
+        diff_text_list = ["**0**" for x in range(0, len(account_data[0]))]
+        for i in range(len(diff_list)):
+            if diff_list[i] != 0:
+                diff_text_list[
+                    i] = f"{[account1_text, account2_text][diff_list[i] < 0]} +{abs(diff_list[i])}"
+        text += f"**Difference in Followers**: {diff_text_list[0]}"
+        if (diff_list[0] == 0):
+            text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
+        return text
+
+    async def send_balance_followers_message(self, channels):
+        text = self.get_balance_followers_message()
         for channel in channels:
             async with channel.typing():
                 await channel.send(text)
@@ -339,11 +381,11 @@ class ARG(commands.Cog, name="ARG"):
                         channel.send(
                             'An error happened, please report it to the bot creator kthx:', e)
 
-    # monitors balance tweets
+    # monitors balance experiment
 
-    async def monitor_balance_tweets(self):
+    async def monitor_balance(self):
         await self.bot.wait_until_ready()
-        print('(balance) Starting balance tweets monitoring.')
+        print('(balance) Starting balance experiment monitoring.')
         channels = [self.bot.get_channel(channel)
                     for channel in self.twitter_monitor_channels]
         # check if bot can actually access all monitor channels
@@ -357,8 +399,9 @@ class ARG(commands.Cog, name="ARG"):
                 channels = list(filter(None, channels))
         while True:
             try:
-                await self.send_balance_tweet_message(channels)
-                # wait for 30 minutes
+                #await self.send_balance_tweet_message(channels)
+                await self.send_balance_followers_message(channels)
+                # wait for 10 minutes
                 current_time = time.time()
                 while current_time + self.balance_delay > time.time():
                     await asyncio.sleep(1)
@@ -432,12 +475,16 @@ class ARG(commands.Cog, name="ARG"):
         await self.hb_send_message(interaction, message=self.bats_encrypt(string))
         return
 
-    """@commands.slash_command(
-        name="balance", description="Retrieve Balance Experiment status."
+    @commands.slash_command(
+        name="balance", description="STAFF ONLY - Retrieve Balance Experiment status."
     )
     async def balance(self, interaction=Interaction):
-        await self.hb_send_message(interaction, self.get_balance_tweet_message())
-        return"""
+        if self.verify_permissions(interaction):
+        #await self.hb_send_message(interaction, self.get_balance_tweet_message())
+            await self.hb_send_message(interaction, self.get_balance_followers_message())
+        else:
+            await interaction.response.send_message("You're not staff.", ephemeral=True)
+        return
 
     @commands.slash_command(
         name="thumbsup", description="you have 21 minutes to get help"
