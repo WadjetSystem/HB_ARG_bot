@@ -327,8 +327,6 @@ class ARG(commands.Cog, name="ARG"):
                     lowered_string = message.content.lower()
                     if lowered_string == "we're no strangers to love":
                         await message.channel.send('you know the rules and so do AI')
-                    elif lowered_string == "a-set":
-                        await message.channel.send('you bet!')
                     if lowered_string.find('erotic') != -1:
                         await message.add_reaction('💢')
                     if lowered_string.find('tax eva') != -1: # tax evasion is a crime
