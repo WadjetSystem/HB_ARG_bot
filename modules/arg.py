@@ -98,7 +98,7 @@ class ARG(commands.Cog, name="ARG"):
         self.balance_delay = 600  # by default, 10 minutes, but can be changed later
 
     def setup_activity(self):
-        self.activities = [(disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
+        self.activities = [(disnake.ActivityType.playing, "ShovelForge ⛏"), (disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
                            (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
                                                                                         "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
                            (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼")]
@@ -319,13 +319,19 @@ class ARG(commands.Cog, name="ARG"):
                     if str(message.author) in self.current_tweeters:
                         if message.content.find('https://twitter.com/') != -1:
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
-                            return
+                        if "iris" in str(message.author).lower():
+                            await self.bot.change_presence(activity=disnake.Activity(
+                                type=self.activities[0][0], name=self.activities[0][1])) # shovelforge
+                        return
                 else:
-                    if message.content.lower() == "we're no strangers to love":
+                    lowered_string = message.content.lower()
+                    if lowered_string == "we're no strangers to love":
                         await message.channel.send('you know the rules and so do AI')
-                    if message.content.find('erotic') != -1:
+                    elif lowered_string == "a-set":
+                        await message.channel.send('you bet!')
+                    if lowered_string.find('erotic') != -1:
                         await message.add_reaction('💢')
-                    if message.content.find('tax eva') != -1: # tax evasion is a crime
+                    if lowered_string.find('tax eva') != -1: # tax evasion is a crime
                         await message.add_reaction('📗')
                     return
 
