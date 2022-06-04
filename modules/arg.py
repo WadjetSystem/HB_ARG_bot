@@ -72,6 +72,7 @@ class ARG(commands.Cog, name="ARG"):
                                  ["Lumina", 1526731623987019776, None, ":green_book:"]]
         self.filename = "hiddenbats"
         self.nonce = None
+        self.monitor_all = True
 
     def setup_discord_channels(self):
         self.bats_monitor_channels = orjson.loads(
@@ -370,7 +371,7 @@ class ARG(commands.Cog, name="ARG"):
                             current_bytearray = self.response_to_byte_array(
                                 response)
                             # notify about changes
-                            if prev_nonce != self.nonce:
+                            if (prev_nonce != self.nonce) or self.monitor_all:
                                 await self.send_html_message(
                                     channels, prev_bytearray, current_bytearray, prev_nonce)
                         else:
@@ -564,6 +565,19 @@ class ARG(commands.Cog, name="ARG"):
             await self.hb_send_message(interaction, message="You're not staff.")
         return
 
+    @commands.slash_command(
+        name="toggle_monitoring", description="STAFF ONLY - toggle monitoring for every change"
+    )
+    async def toggle_monitoring(self, interaction=Interaction):
+        if self.verify_permissions(interaction):
+            self.monitor_all = not self.monitor_all
+            if self.monitor_all:
+                await self.hb_send_message(interaction, message="Monitoring has been turned on. <:MizukiThumbsUp:925566710243803156>")
+            else:
+                await self.hb_send_message(interaction, message="Monitoring has been turned off. <:aifuckedup:566398094980153344>")
+        else:
+            await self.hb_send_message(interaction, message="You're not staff.")
+        return
 
 def setup(bot: commands.Bot):
     bot.add_cog(ARG(bot))
