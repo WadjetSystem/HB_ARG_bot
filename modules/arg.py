@@ -38,11 +38,11 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_monitoring()
         self.setup_discord_channels()
         self.setup_pair_info()
-        #self.setup_balance()
+        # self.setup_balance()
         self.setup_activity()
 
         asyncio.ensure_future(self.monitor_bats())
-        #asyncio.ensure_future(self.monitor_balance())
+        # asyncio.ensure_future(self.monitor_balance())
         asyncio.ensure_future(self.update_activity())
 
     # setup functions
@@ -70,6 +70,8 @@ class ARG(commands.Cog, name="ARG"):
                                ["Binato", 1526019606426488832, None, ":orange_circle:"]]
         self.balance_accounts = [["Mariha", 1526728623511969792, None, ":anger:"],
                                  ["Lumina", 1526731623987019776, None, ":green_book:"]]
+        self.monitor_messages = ["Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n", "There has been a change in the website known as the Hidden Bats from the SUNAIKU FOUNDATION. <:TesaThumbsUp:669779611294498816>\n",
+                                 "A modification has been detected in the SUNAIKU FOUNDATION's Hidden Bats webpage. <a:aiba_hack:633702989361840138>\n", "Changes have been found in the webpage with the hidden bats, brought to you by the SUNAIKU FOUNDATION. <:paiaww:920558287248830474>\n", "hiddenbats is change <:TesaToo:595343260428271655>\n", "CHANGE <:TesaWoah:920563525443788840>\n"]
         self.filename = "hiddenbats"
         self.nonce = None
         self.monitor_all = True
@@ -91,7 +93,9 @@ class ARG(commands.Cog, name="ARG"):
         )
         # overwrites current tweeter if not blank
         self.overwrite_name = os.getenv('TWEETER_OVERWRITE', "")
-        self.current_tweeters = orjson.loads(os.getenv('CURRENT_TWEETERS', '[]')) # for example: ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]
+        # for example: ["Mariha Monzen/門前マリハ • TweetShift#0000", "Lumina Rikujo/離久浄ルミナ • TweetShift#0000"]
+        self.current_tweeters = orjson.loads(
+            os.getenv('CURRENT_TWEETERS', '[]'))
 
     def setup_balance(self):
         # Authenticate to Twitter
@@ -102,7 +106,7 @@ class ARG(commands.Cog, name="ARG"):
         self.activities = [(disnake.ActivityType.playing, "ShovelForge ⛏"), (disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
                            (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
                                                                                         "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
-                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼")]
+                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "NirvanA Initiative 🦇"),  (disnake.ActivityType.playing, "The Centennial Case 🥜"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼")]
 
     # helper functions
 
@@ -130,7 +134,7 @@ class ARG(commands.Cog, name="ARG"):
     # sending hidden bats HTML
 
     async def send_html_message(self, channels, prev_bytearray, current_bytearray, prev_nonce):
-        text_prev = "Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n"
+        text_prev = random.choice(self.monitor_messages)
         text_new = str()
         if prev_nonce != self.nonce:
             text_prev += f"Previous nonce: {prev_nonce}\n"
@@ -307,7 +311,7 @@ class ARG(commands.Cog, name="ARG"):
 
     # events
 
-    @commands.Cog.listener()
+    @ commands.Cog.listener()
     async def on_message(self, message):
 
         if message.author == self.bot.user:
@@ -322,7 +326,7 @@ class ARG(commands.Cog, name="ARG"):
                             await message.add_reaction('<:MizukiThumbsUp:925566710243803156>')
                         if "iris" in str(message.author).lower():
                             await self.bot.change_presence(activity=disnake.Activity(
-                                type=self.activities[0][0], name=self.activities[0][1])) # shovelforge
+                                type=self.activities[0][0], name=self.activities[0][1]))  # shovelforge
                         return
                 else:
                     lowered_string = message.content.lower()
@@ -330,7 +334,8 @@ class ARG(commands.Cog, name="ARG"):
                         await message.channel.send('you know the rules and so do AI')
                     if lowered_string.find('erotic') != -1:
                         await message.add_reaction('💢')
-                    if lowered_string.find('tax eva') != -1: # tax evasion is a crime
+                    # tax evasion is a crime
+                    if lowered_string.find('tax eva') != -1:
                         await message.add_reaction('📗')
                     return
 
@@ -578,6 +583,7 @@ class ARG(commands.Cog, name="ARG"):
         else:
             await self.hb_send_message(interaction, message="You're not staff.")
         return
+
 
 def setup(bot: commands.Bot):
     bot.add_cog(ARG(bot))
