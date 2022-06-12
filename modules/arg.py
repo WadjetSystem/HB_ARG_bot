@@ -332,6 +332,8 @@ class ARG(commands.Cog, name="ARG"):
                         await message.add_reaction('💢')
                     if lowered_string.find('tax eva') != -1: # tax evasion is a crime
                         await message.add_reaction('📗')
+                    if lowered_string.find('#kairosweep') != -1:
+                        await message.add_reaction('🧹')
                     return
 
     # monitors hiddenbats site for any changes
