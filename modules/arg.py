@@ -38,11 +38,11 @@ class ARG(commands.Cog, name="ARG"):
         self.setup_monitoring()
         self.setup_discord_channels()
         self.setup_pair_info()
-        # self.setup_balance()
+        self.setup_balance()
         self.setup_activity()
 
         asyncio.ensure_future(self.monitor_bats())
-        # asyncio.ensure_future(self.monitor_balance())
+        asyncio.ensure_future(self.monitor_balance())
         asyncio.ensure_future(self.update_activity())
 
     # setup functions
@@ -70,6 +70,8 @@ class ARG(commands.Cog, name="ARG"):
                                ["Binato", 1526019606426488832, None, ":orange_circle:"]]
         self.balance_accounts = [["Mariha", 1526728623511969792, None, ":anger:"],
                                  ["Lumina", 1526731623987019776, None, ":green_book:"]]
+        self.balance_polls = [["Iris", 1536891506124267520, None, "<:SchrodIris:986458165514219550>"],
+                               ["Kairo", 1536891506124267520, None, ":broom:"]]
         self.monitor_messages = ["Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n", "There has been a change in the website known as the Hidden Bats from the SUNAIKU FOUNDATION. <:TesaThumbsUp:669779611294498816>\n",
                                  "A modification has been detected in the SUNAIKU FOUNDATION's Hidden Bats webpage. <a:aiba_hack:633702989361840138>\n", "Changes have been found in the webpage with the hidden bats, brought to you by the SUNAIKU FOUNDATION. <:paiaww:920558287248830474>\n", "hiddenbats is change <:TesaToo:595343260428271655>\n", "CHANGE <:TesaWoah:920563525443788840>\n"]
         self.filename = "hiddenbats"
@@ -231,6 +233,47 @@ class ARG(commands.Cog, name="ARG"):
                 await channel.send(text)
         return
 
+    # sending balance poll alert
+
+    def get_balance_poll_message(self):
+        
+        tweet = self.twitter_api.get_tweet(
+            self.balance_polls[0][1], tweet_fields=["public_metrics"], expansions=["attachments.poll_ids"])
+        poll = tweet.includes["polls"][0]
+        self.balance_polls[0][2] = poll.options[0]
+        self.balance_polls[1][2] = poll.options[1]
+
+        text = ""
+        text += f"Current status of poll:\n"
+        vote_data = list()
+        for account in self.balance_polls:
+            status = account[2]
+            votes = status["votes"]
+            vote_data.append(votes)
+        vote_diff = vote_data[0] - vote_data[1]        
+        # account 1
+        account1_text = f"{self.balance_polls[0][3]}**{self.balance_polls[0][0]}**"
+        # account 2
+        account2_text = f"{self.balance_polls[1][3]}**{self.balance_polls[1][0]}**"
+        text += f"{account1_text}: {vote_data[0]}\n"
+        text += f"{account2_text}: {vote_data[1]}\n"        
+        # diff votes
+        diff = vote_diff
+        diff_text = "**0**"
+        if diff != 0:
+            diff_text = f"{[account1_text, account2_text][diff < 0]} +{abs(diff)}"
+        text += f"**Difference**: {diff_text}"
+        if (diff == 0):
+            text += "\nPerfectly balanced. <:MizukiThumbsUp:925566710243803156>"
+        return text
+
+    async def send_balance_poll_message(self, channels):
+        text = self.get_balance_poll_message()
+        for channel in channels:
+            async with channel.typing():
+                await channel.send(text)
+        return
+        
     # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
 
     def bats_values(self, inputstring):
@@ -490,17 +533,17 @@ class ARG(commands.Cog, name="ARG"):
         await self.hb_send_message(interaction, message=self.bats_encrypt(string))
         return
 
-    # no balance right now
-    """@commands.slash_command(
+    @commands.slash_command(
         name="balance", description="STAFF ONLY - Retrieve Balance Experiment status."
     )
     async def balance(self, interaction=Interaction):
         if self.verify_permissions(interaction):
             # await self.hb_send_message(interaction, self.get_balance_tweet_message())
-            await self.hb_send_message(interaction, self.get_balance_followers_message())
+            # await self.hb_send_message(interaction, self.get_balance_followers_message())
+            await self.hb_send_message(interaction, self.get_balance_poll_message())
         else:
             await interaction.response.send_message("You're not staff.", ephemeral=True)
-        return"""
+        return
 
     @commands.slash_command(
         name="thumbsup", description="you have 21 minutes to get help"
