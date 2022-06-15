@@ -458,7 +458,7 @@ class ARG(commands.Cog, name="ARG"):
         while True:
             try:
                 # await self.send_balance_tweet_message(channels)
-                await self.send_balance_followers_message(channels)
+                await self.send_balance_poll_message(channels)
                 # wait for 10 minutes
                 current_time = time.time()
                 while current_time + self.balance_delay > time.time():
