@@ -71,7 +71,7 @@ class ARG(commands.Cog, name="ARG"):
         self.balance_accounts = [["Mariha", 1526728623511969792, None, ":anger:"],
                                  ["Lumina", 1526731623987019776, None, ":green_book:"]]
         self.balance_polls = [["Iris", 1536891506124267520, None, "<:SchrodIris:669779611374190623>"],
-                               ["Kairo", 1536891506124267520, None, ":broom:"]]
+                              ["Kairo", 1536891506124267520, None, ":broom:"]]
         self.monitor_messages = ["Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n", "There has been a change in the website known as the Hidden Bats from the SUNAIKU FOUNDATION. <:TesaThumbsUp:669779611294498816>\n",
                                  "A modification has been detected in the SUNAIKU FOUNDATION's Hidden Bats webpage. <a:aiba_hack:633702989361840138>\n", "Changes have been found in the webpage with the hidden bats, brought to you by the SUNAIKU FOUNDATION. <:paiaww:920558287248830474>\n", "hiddenbats is change <:TesaToo:595343260428271655>\n", "CHANGE <:TesaWoah:920563525443788840>\n"]
         self.filename = "hiddenbats"
@@ -108,7 +108,7 @@ class ARG(commands.Cog, name="ARG"):
         self.activities = [(disnake.ActivityType.playing, "ShovelForge ⛏"), (disnake.ActivityType.playing, "Zero Time Dilemma 🐌"), (disnake.ActivityType.playing, "World's End Club 🚚☄️"), (disnake.ActivityType.playing, "999 🧊"),
                            (disnake.ActivityType.playing, "AI: THE SOMNIUM FILES 👁️"), (disnake.ActivityType.playing,
                                                                                         "Never7 🔔"), (disnake.ActivityType.playing, "Virtue's Last Reward 🆎"),
-                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "NirvanA Initiative 🦇"),  (disnake.ActivityType.playing, "The Centennial Case 🥜"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼")]
+                           (disnake.ActivityType.playing, "Danganronpa 🙄"), (disnake.ActivityType.playing, "NirvanA Initiative 🦇"),  (disnake.ActivityType.playing, "The Centennial Case 🥜"), (disnake.ActivityType.playing, "428 Shibuya Scramble 🍌"), (disnake.ActivityType.watching, "Danganronpa 3 💀"), (disnake.ActivityType.playing, "Ever17 🐹"), (disnake.ActivityType.playing, "Remember11 🍼"), (disnake.ActivityType.playing, "Collar × Malice 🐈")]
 
     # helper functions
 
@@ -236,7 +236,7 @@ class ARG(commands.Cog, name="ARG"):
     # sending balance poll alert
 
     def get_balance_poll_message(self):
-        
+
         tweet = self.twitter_api.get_tweet(
             self.balance_polls[0][1], tweet_fields=["public_metrics"], expansions=["attachments.poll_ids"])
         poll = tweet.includes["polls"][0]
@@ -244,19 +244,19 @@ class ARG(commands.Cog, name="ARG"):
         self.balance_polls[1][2] = poll.options[1]
 
         text = ""
-        text += f"Current status of poll:\n"
+        text += "Current poll status:\n"
         vote_data = list()
         for account in self.balance_polls:
             status = account[2]
             votes = status["votes"]
             vote_data.append(votes)
-        vote_diff = vote_data[0] - vote_data[1]        
+        vote_diff = vote_data[0] - vote_data[1]
         # account 1
         account1_text = f"{self.balance_polls[0][3]}**{self.balance_polls[0][0]}**"
         # account 2
         account2_text = f"{self.balance_polls[1][3]}**{self.balance_polls[1][0]}**"
         text += f"{account1_text}: {vote_data[0]}\n"
-        text += f"{account2_text}: {vote_data[1]}\n"        
+        text += f"{account2_text}: {vote_data[1]}\n"
         # diff votes
         diff = vote_diff
         diff_text = "**0**"
@@ -273,7 +273,7 @@ class ARG(commands.Cog, name="ARG"):
             async with channel.typing():
                 await channel.send(text)
         return
-        
+
     # functions for Bats489 decryption and encryption. thanks to salty-dracon#8328 for the original code!
 
     def bats_values(self, inputstring):
@@ -384,6 +384,8 @@ class ARG(commands.Cog, name="ARG"):
                         await message.add_reaction('🧹')
                     if lowered_string.find('#taithevote') != -1:
                         await message.add_reaction('⚖️')
+                    if lowered_string.find('#irissweep') != -1:
+                        await message.add_reaction('<:Tesoul:669779611336310784>')
                     return
 
     # monitors hiddenbats site for any changes
@@ -609,7 +611,7 @@ class ARG(commands.Cog, name="ARG"):
     @commands.slash_command(
         name="change_delay", description="STAFF ONLY - adjust Twitter balance monitoring delay"
     )
-    async def change_delay(self, interaction=Interaction, *, delay: int = commands.Param(description="Delay between automatic balance posts (seconds). Default is 1800.")):
+    async def change_delay(self, interaction=Interaction, *, delay: int = commands.Param(description="Delay between automatic balance posts (seconds). Default is 600.")):
         if self.verify_permissions(interaction):
             self.balance_delay = delay
             await self.hb_send_message(interaction, message=f"Delay has been updated to {delay} seconds. <:MizukiThumbsUp:925566710243803156>")
