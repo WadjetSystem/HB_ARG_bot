@@ -70,7 +70,7 @@ class ARG(commands.Cog, name="ARG"):
                                ["Binato", 1526019606426488832, None, ":orange_circle:"]]
         self.balance_accounts = [["Mariha", 1526728623511969792, None, ":anger:"],
                                  ["Lumina", 1526731623987019776, None, ":green_book:"]]
-        self.balance_polls = [["Iris", 1536891506124267520, None, "<:SchrodIris:986458165514219550>"],
+        self.balance_polls = [["Iris", 1536891506124267520, None, "<:SchrodIris:669779611374190623>"],
                                ["Kairo", 1536891506124267520, None, ":broom:"]]
         self.monitor_messages = ["Something changed in hiddenbats site. <:MizukiThumbsUp:925566710243803156>\n", "There has been a change in the website known as the Hidden Bats from the SUNAIKU FOUNDATION. <:TesaThumbsUp:669779611294498816>\n",
                                  "A modification has been detected in the SUNAIKU FOUNDATION's Hidden Bats webpage. <a:aiba_hack:633702989361840138>\n", "Changes have been found in the webpage with the hidden bats, brought to you by the SUNAIKU FOUNDATION. <:paiaww:920558287248830474>\n", "hiddenbats is change <:TesaToo:595343260428271655>\n", "CHANGE <:TesaWoah:920563525443788840>\n"]
