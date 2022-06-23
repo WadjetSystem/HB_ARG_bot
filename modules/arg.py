@@ -582,7 +582,8 @@ class ARG(commands.Cog, name="ARG"):
             await interaction.followup.send(f"Failed. Unknown response code: {resp.status}. Please contact the bot's creator kthx.")
         return
 
-    @commands.slash_command(
+    # no more bats
+    """@commands.slash_command(
         name="time", description="Posts how much time is left until the next tweet."
     )
     async def time(self, interaction=Interaction):
@@ -608,6 +609,13 @@ class ARG(commands.Cog, name="ARG"):
             tweet_sender = self.overwrite_name
 
         await self.hb_send_message(interaction, message=f"Next tweet will happen <t:{str(unix_timestamp)[:10]}:R> and it'll be tweeted by {tweet_sender}.")
+        return"""
+
+    @commands.slash_command(
+        name="time", description="Posts how much time is left until AINI Steam release."
+    )
+    async def time(self, interaction=Interaction):
+        await self.hb_send_message(interaction, message=f"AI: THE SOMNIUM FILES - nirvanA Initiative releases on Steam <t:1656086400:R>.")
         return
 
     @commands.slash_command(
